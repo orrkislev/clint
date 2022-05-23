@@ -19,28 +19,34 @@ async function makeImage() {
     stroke(pencil)
 
     borders = []
-    borders.push(makeSpine(new Point(width*.2, -height*.2),new Point(0,1) ,height*1.4))
-    borders.push(makeSpine(new Point(width*.8, -height*.2),new Point(0,1) ,height*1.4))
+    borders.push(makeSpine(new Point(width*-.2, -height*.2),new Point(0,1) ,height*1.4))
+    borders.push(makeSpine(new Point(width*1.2, -height*.2),new Point(0,1) ,height*1.4))
 
     holes = []
+    const c = new Path.Circle(new Point(width/2,height/2),random(20,80))
+    c.segments.forEach(seg=>{
+        seg.point.y += random(-10,10)
+        seg.point.x += random(-10,10)
+    })
+    c.segments[3].point.y+=25
+    holes.push(c)
+    borders.push(makeSpine(c.segments[3].point,new Point(0,1) ,height))
+
     for (let i = 0; i<2;i++) {
-        const pos = new Point(random(width*.2,width*.5),random(height))
-        const c = new Path.Circle(pos,random(20,80))
+        const c = new Path.Circle(new Point(random(width*.2,width*.4),random(height)),random(20,80))
         c.segments.forEach(seg=>{
             seg.point.y += random(-10,10)
             seg.point.x += random(-10,10)
         })
         c.segments[3].point.y+=25
         holes.push(c)
-
-        borderLength = height
-        borders.push(makeSpine(c.segments[3].point,new Point(0,1) ,borderLength))
+        borders.push(makeSpine(c.segments[3].point,new Point(0,1) ,height))
 
         const c2 = c.clone()
         c2.position.x = width-c2.position.x
         c2.scale(-1,1)
         holes.push(c2)
-        borders.push(makeSpine(c2.segments[3].point,new Point(0,1) ,borderLength))
+        borders.push(makeSpine(c2.segments[3].point,new Point(0,1) ,height))
     }
 
     fill(pencil)
