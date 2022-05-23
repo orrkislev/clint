@@ -1,38 +1,51 @@
-function getPerspectiveCirclePoints(r, s=0, e=360) {
-    const points = []
-    for (let i = 0; i < abs(s - e); i += 1) {
-        const p = i / abs(s - e)
-        const a = lerp(s, e, p)
-        const pos = getPointOnEllipse(r, r * 0.4, a)
-        points.push(pos)
+const Path = paper.Path
+const Point = paper.Point
+const Segment = paper.Segment
+
+function makeSpine2(v1,v2, sunPoints){
+    const dir = v2.subtract(v1)
+    dir.length = 1
+    dir.angle += 90
+    const path = new Path()
+    for (let i=0;i<=sunPoints;i++){
+        const p = new Point(lerp(v1.x,v2.x,i/sunPoints), lerp(v1.y,v2.y,i/sunPoints))
+        const p2 = p.add(dir.multiply(random(-50,50)))
+        path.add(p2)
     }
-    return new Shape(points)
-
+    path.smooth()
+    return path
 }
 
-function getPointOnEllipse(w, h, a) {
-    return createVector(w * 0.5 * cos(a), h * 0.5 * sin(a))
+function makeSpine(start, dir, totalLength){
+    const segments = 10
+    const segmentLength = totalLength/segments
+    dir.length = segmentLength
+    const path = new Path()
+    path.add(start)
+    for (let i=0;i<segments;i++){
+        const segDir = dir.clone()
+        segDir.angle += random(-15,15)
+        start = start.add(segDir)
+        path.add(start)
+    }
+    path.smooth()
+    return path
 }
-function getEllipse(w,h,step=1,s=0,e=360){
+
+
+
+function pathToPoints(path){
+    const l = path.length
     const ps = []
-    for (let a=s;a<e;a+=step) ps.push(getPointOnEllipse(w,h,a))
+    for (let i=0;i<l;i++) ps.push(path.getPointAt(i))
     return ps
 }
 
-function makeCurve(ps) {
-    const newCurve = []
-    for (let i = 0; i < ps.length - 1; i++) {
-        const curr = ps[i]
-        const next = ps[i + 1]
-        const l = p5.Vector.dist(curr, next)
-        for (let j = 0; j < l; j++) {
-            const t = j / l
-            const control1 = i > 0 ? ps[i - 1] : curr
-            const control2 = i < ps.length - 1 ? ps[i + 1] : next
-            const x = curvePoint(control1.x, curr.x, next.x, control2.x, t)
-            const y = curvePoint(control1.y, curr.y, next.y, control2.y, t)
-            newCurve.push(v(x, y))
-        }
-    }
-    return newCurve
+function drawPath(path){
+    const ps = pathToPoints(path)
+    drawShape(ps)
+}
+function fillPath(path){
+    const ps = pathToPoints(path)
+    fillShape(ps)
 }

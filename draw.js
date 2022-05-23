@@ -1,22 +1,22 @@
 allDots = 0
-const drawDot = (p)=>{
-    drawDotXY(p.x,p.y)
+const drawDot = (p) => {
+    drawDotXY(p.x, p.y)
 }
-function drawDotXY(x,y){
+nx = 0
+nxs = 0.02
+function drawDotXY(x, y) {
     allDots++
-    strokeWeight(random(1,2))
-    line(x,y,x,y)
+    nx += nxs
+    strokeWeight(2+noise(nx)*2)
+    line(x, y, x, y)
 }
 
-halfToneSize = 5
-function halfTone(pos,val){
-    // if (random()<val) line(pos.x,pos.y,pos.x,pos.y)
-    const t = abs(pos.y%halfToneSize)/halfToneSize + abs(pos.x%halfToneSize)/halfToneSize + random()/2
-    if (val>t/2) line(pos.x,pos.y,pos.x,pos.y)
-}
-
-function fillShape(ps,x=0,y=0){
+function fillShape(ps, x = 0, y = 0) {
     beginShape()
-    ps.forEach(p => vertex(p.x+x,p.y+y))
+    ps.forEach(p => vertex(p.x + x, p.y + y))
     endShape()
+}
+
+function drawShape(ps, x = 0, y = 0) {
+    ps.forEach(p => drawDotXY(p.x + x, p.y + y))
 }

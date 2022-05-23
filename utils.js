@@ -1,9 +1,11 @@
+let finalImage
 function finishImage() {
     finalImage = get()
     windowResized()
 }
 
 function windowResized() {
+    if (!finalImage) finalImage = get()
     resizeCanvas(min(windowWidth, windowHeight), min(windowWidth, windowHeight));
     resetMatrix()
     image(finalImage, 0, 0, width, height)
@@ -32,4 +34,12 @@ Array.prototype.rotateShape = function rotateShape(a) {
     const sumToRotate = this.length * a / 360
     for (let i = 0; i < sumToRotate; i++) this.push(this.shift())
     return this
+}
+function applyRemove(func) {
+    push()
+    noStroke()
+    fill(0)
+    blendMode(REMOVE)
+    func()
+    pop()
 }
