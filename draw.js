@@ -20,3 +20,7 @@ function fillShape(ps, x = 0, y = 0) {
 function drawShape(ps, x = 0, y = 0) {
     ps.forEach(p => drawDotXY(p.x + x, p.y + y))
 }
+
+function timeout(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}

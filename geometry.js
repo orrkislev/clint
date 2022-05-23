@@ -2,6 +2,14 @@ const Path = paper.Path
 const Point = paper.Point
 const Segment = paper.Segment
 
+const DIRS = {
+    UP: new Point(0,-1),
+    DOWN: new Point(0,1),
+    LEFT: new Point(-1,0),
+    RIGHT: new Point(1,0),
+}
+const p = (x,y)=>new Point(x,y)
+
 function makeSpine2(v1,v2, sunPoints){
     const dir = v2.subtract(v1)
     dir.length = 1
