@@ -9,6 +9,7 @@ const DIRS = {
     RIGHT: new Point(1,0),
 }
 const p = (x,y)=>new Point(x,y)
+const randomPoint = ()=>new Point(random(-1,1),random(-1,1)).normalize()
 
 function makeSpine2(v1,v2, sunPoints){
     const dir = v2.subtract(v1)

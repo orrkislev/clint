@@ -28,8 +28,13 @@ async function makeImage() {
         hole.mirror()
     }
 
+    for (let i=0;i<borders.length-1;i++){
+        for (let j=i+1;j<borders.length;j++){
+            borders[i].stickTo(borders[j].path)
+        }
+    }
+
     holes.forEach(hole=>hole.draw())
-    borders.forEach(border=>border.draw())
     
     dir = DIRS.RIGHT.clone()
     // borders.sort((a,b)=>random(-1,1))
@@ -46,16 +51,16 @@ async function makeImage() {
                     if (last.curve.path != next.curve.path){
                         if (!(last.curve.path.closed && last.curve.path.contains(next.point)) && 
                             !(next.curve.path.closed && next.curve.path.contains(last.point))){
-                            const newPath = fieldArc(last,next)
+                            const newPath = new FieldArc(last,next)
                             good = true
                             colliders.forEach(collider=>{
-                                if  (collider.intersect(newPath).length>1) good = false
+                                if  (collider.intersect(newPath.path).length>1) good = false
                             })
-                            if (good) stroke(pencil)
-                            else stroke(0,0)
-                            if (!next.curve.path.closed && !last.curve.path.closed)
-                                pushes.forEach(pushy => pushy.applyPush(newPath) )
-                            drawPath(newPath)
+                            if (good) {
+                                // colliders.push(newPath)
+                                holes.forEach(hole=>hole.applyPushes(newPath.path))
+                                newPath.draw()
+                            }
                         }
                     }
                 }
@@ -64,36 +69,8 @@ async function makeImage() {
             await timeout(0)
         }
     }
+    borders.forEach(border=>border.draw())
     return
-    
-    let count = 0
-    for (border of borders){
-        console.time(`${count} / ${borders.length}`)
-        // border = borders[3]
-        for (let i = 0; i < border.length; i += 10) {
-            loc = border.getLocationAt(i)
-            dir.angle = map(loc.point.y,0,height,-20,20)
-            const [next,mid] = findNext(border, loc.point,loc.normal, borders)
-            if (next) {
-                if (border.closed && border.contains(next.point)) continue
-                p = fieldArc(loc,next,mid)
-                good = true
-                paths.forEach(b=>{
-                    if (b==border || b==next.curve)return
-                    if  (b.getIntersections(p).length>0)
-                        good = false
-                })
-                if (good) stroke(pencil)
-                else stroke(255,0,0,0)
-                drawPath(p)
-                paths.push(p)
-                await timeout(0)
-            }
-        }
-        console.timeEnd(`${count} / ${borders.length}`)
-        count++
-    }
-    print('done')
     
     // addEffect()
     // finishImage()
@@ -101,7 +78,7 @@ async function makeImage() {
 }
 
 function findNext(startPoint, dir) {
-    dir.length = width*2
+    dir.length = width*3
     const dirPath = new Path([startPoint,startPoint.add(dir)])
     let nearest = null
     let shortestD = 100000
@@ -121,46 +98,7 @@ function findNext(startPoint, dir) {
     return nearest
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function fieldArc(loc1,loc2){
-    let t1 = loc1.tangent.multiply(100)
-    let t2 = loc2.tangent.multiply(100)
-    if (t1.angle > 180 || t1.angle < 0) t1.angle += 180
-    if (t2.angle > 180 || t2.angle < 0) t2.angle += 180
-    const seg1 = new Segment(loc1.point, null, t1)
-    const seg2 = new Segment(loc2.point, t2)
-    const newPath = new Path([seg1, seg2])
-    return newPath
-}
-
-
-
-
 function addEffect(){
     filter(ERODE)
     filter(DILATE)
 }
-
-
