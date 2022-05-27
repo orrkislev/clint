@@ -24,7 +24,8 @@ async function makeImage() {
     // createBorder(p(width * 1.2, -height * .2), DIRS.DOWN, height * 1.4)
 
     compCenter = new Point(random(width), random(height))
-    holeDirection = new Point(width * .5, height*15)
+    // holeDirection = new Point(width * .5, height * .5).add(pointFromAngle(random(360)).multiply(random(height)))
+    holeDirection = null
     hole = new Hole(p(width * .5, height * .5), 80)
 
     // create 5 guides
@@ -34,9 +35,10 @@ async function makeImage() {
     }
 
 
-    for (let i = 0; i < 3; i++) {
-        hole = new Hole(p(random(width*.1,width*.5), random(height*.2,height*.8)), random(30,80))
-        hole.mirror()
+    for (let i = 0; i < 5; i++) {
+        hole = new Hole(p(random(width), random(height)), random(30, 80))
+        
+        // hole.mirror()
     }
 
     for (let i = 0; i < borders.length - 1; i++) {
@@ -47,17 +49,17 @@ async function makeImage() {
 
     holes.forEach(hole => hole.draw())
 
-    for (let r = 20; r < height*1.2; r += 20) {
+    for (let r = 20; r < height * 1.2; r += 10) {
         const dirPath = new Path.Circle(compCenter, r)
         const intersections = getOrderedIntersections(dirPath, colliders)
 
         if (intersections.length == 0) continue
 
-        for (let i=0; i<intersections.length; i++) {
+        for (let i = 0; i < intersections.length; i++) {
             const intersection1 = intersections[i]
             let intersection2 = intersections[i + 1] || null
             if (!intersection2) {
-                intersection2 = {...intersections[0]}
+                intersection2 = { ...intersections[0] }
                 intersection2.dist += dirPath.length
             }
             const location1 = intersection1.location
@@ -69,10 +71,10 @@ async function makeImage() {
             const midPointNumber = floor((angle2 - angle1) / 30)
             const midPointSpacing = (angle2 - angle1) / (midPointNumber + 1)
             const midPointAngles = Array(midPointNumber).fill(0).map((a, i) => angle1 + (i + 1) * midPointSpacing)
-            const midPointLocations = midPointAngles.map(angle => pointFromAngle(angle).multiply(r+30).add(compCenter))
+            const midPointLocations = midPointAngles.map(angle => pointFromAngle(angle).multiply(r + 30).add(compCenter))
 
             if (intersection1.pathObj == intersection2.pathObj && intersection1.pathObj.path.closed) {
-                const midmidPoint = pointFromAngle((angle1+angle2)/2).multiply(r).add(compCenter)
+                const midmidPoint = pointFromAngle((angle1 + angle2) / 2).multiply(r).add(compCenter)
                 if (intersection1.pathObj.path.contains(midmidPoint)) continue
             }
 
@@ -99,9 +101,9 @@ async function makeImage() {
     uniquePaths[0].path.closePath()
 
     const offsetPath = uniquePaths[0].path.clone()
-    for (let i=0;i<1;i++){
+    for (let i = 0; i < 3;i++) {
         offsetPath.segments.forEach(segment => {
-            segment.point = segment.point.add(segment.location.normal.multiply(-30))
+            segment.point = segment.point.add(segment.location.normal.multiply(-10))
         })
         offsetPath.simplify(.05)
 

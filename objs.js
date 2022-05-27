@@ -76,7 +76,9 @@ class Hole extends myObj {
                 seg.point.x += size * random(-0.2, 0.2)
             })
             this.path.segments[3].point.y += size * 0.5
-            const dirFromCompCenter = holeDirection.subtract(this.path.position).normalize()
+            let dirFromCompCenter
+            if (holeDirection) dirFromCompCenter = holeDirection.subtract(this.path.position).normalize()
+            else dirFromCompCenter = this.path.position.subtract(compCenter).normalize()
             this.tail = createBorder(this.path.segments[3].point, dirFromCompCenter, height)
             this.makeLarger()
         }
@@ -98,7 +100,10 @@ class Hole extends myObj {
         this.otherHole.path = this.path.clone()
         this.otherHole.path.position.x = width - this.otherHole.path.position.x
         this.otherHole.path.scale(-1, 1)
-        const dirFromCompCenter = holeDirection.subtract(this.otherHole.path.position).normalize()
+
+        let dirFromCompCenter
+        if (holeDirection) dirFromCompCenter = holeDirection.subtract(this.otherHole.path.position).normalize()
+        else dirFromCompCenter = this.otherHole.path.position.subtract(compCenter).normalize()
         this.otherHole.tail = createBorder(this.otherHole.path.segments[3].point, dirFromCompCenter, height)
         this.otherHole.makeLarger()
     }
