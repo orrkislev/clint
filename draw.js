@@ -7,7 +7,8 @@ nxs = 0.02
 function drawDotXY(x, y) {
     allDots++
     nx += nxs
-    strokeWeight(2+noise(nx)*2)
+    strokeWeight(2+noise(nx)*3)
+    // strokeWeight(1)
     line(x, y, x, y)
 }
 
