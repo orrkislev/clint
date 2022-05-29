@@ -36,6 +36,7 @@ class CurveCollider extends myObj {
     }
 
     draw() {
+        this.path.strokeColor = 'black'
         stroke(pencil)
         drawPath(this.path)
     }
@@ -126,15 +127,18 @@ class Hole extends myObj {
     }
 
     draw() {
+        this.path.strokeColor = 'black'
         fill(pencil)
         strokeWeight(5)
         fillPath(this.path)
-
-        stroke(pencil)
-        noFill()
-        // drawPath(this.larger)
     }
 }
+
+
+
+
+
+
 
 function normalAngle(angle) {
     while (angle < 0) angle += 360
@@ -155,11 +159,23 @@ function normalAngleSpacing(p1,p2){
     return angle
 }
 
+function signedAngle(a1,a2){
+    let res = a1-a2
+    if (res>180) res -= 360
+    if (res<-180) res += 360
+    return abs(res)
+}
+
+
+
+
+
 class FieldArc extends myObj {
     constructor(loc1, loc2, midPoints) {
         super()
         const d = loc1.point.getDistance(loc2.point)
-        const force = constrain(d > 0 ? d/4 : 50, 0, 180) 
+        // const force = constrain(d > 0 ? d/4 : 50, 0, 180) 
+        const force = 50
         let t1 = loc1.tangent.multiply(force)
         let t2 = loc2.tangent.multiply(force)
 
@@ -171,8 +187,10 @@ class FieldArc extends myObj {
         const dir2 = compCenter.subtract(loc2.point)
         const dir2Angle = normalAngle(dir2.angle)
 
-        if (abs(t1Angle - dir1Angle) < 90) t1.angle += 180
-        if (abs(t2Angle - dir2Angle) < 90) t2.angle += 180
+        if (signedAngle(t1Angle,dir1Angle)< 90) t1.angle += 180
+        if (signedAngle(t2Angle,dir2Angle)< 90) t2.angle += 180
+        // if (abs(t1Angle - dir1Angle) < 90) t1.angle += 180
+        // if (abs(t2Angle - dir2Angle) < 90) t2.angle += 180
 
         const seg1 = new Segment(loc1.point, null, t1)
         const seg2 = new Segment(loc2.point, t2)
@@ -192,11 +210,25 @@ class FieldArc extends myObj {
         this.path.firstSegment.handleOut = t1
         this.path.lastSegment.handleIn = t2
 
+        this.arcNum = allArcs.length
         allArcs.push(this)
+
+        this.startPath = loc1.path
+        this.endPath = loc2.path
+        this.loc1 = loc1
+        this.loc2 = loc2
+        this.t1 = t1
+        this.t2 = t2
+        this.t1Angle = t1Angle
+        this.t2Angle = t2Angle
+        this.dir1Angle = dir1Angle
+        this.dir2Angle = dir2Angle
+
     }
 
     async draw() {
+        stroke(pencil)
         drawPath(this.path)
-        await timeout(50)
+        await timeout(0)
     }
 }
