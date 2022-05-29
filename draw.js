@@ -23,5 +23,15 @@ function drawShape(ps, x = 0, y = 0) {
 }
 
 function timeout(ms) {
+    // return waitForKey(32).then(() => new Promise(resolve => setTimeout(resolve, max(ms, 0))))
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function waitForKey(key) {
+    return new Promise(resolve => {
+        if (keyIsDown(key)) resolve()
+        else window.addEventListener('keydown', e => {
+            if (e.keyCode == key) resolve()
+        })
+    })
 }

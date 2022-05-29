@@ -47,6 +47,7 @@ async function draw() {
     const maxDist = corners.reduce((a, b) => max(a, b.getDistance(compCenter)), 0)
     for (let r = 50; r < maxDist; r += 30) {
         const dirPath = new Path.Circle(compCenter, r)
+        dirPath.rotate(180)
         await drawArcs({path:dirPath}, r, [], 0)
     }
 }
@@ -54,9 +55,12 @@ async function draw() {
 
 
 async function drawArcs(pathObj, radius, depth = 0) {
-    pathObj.path.strokeColor = '#00000044'
+    pathObj.path.strokeColor = 'red'
+    await timeout(0)
     const intersections = getOrderedIntersections(pathObj.path, colliders)
     if (intersections.length > 0 && depth < 5) {
+        pathObj.path.strokeColor = '#ff000077'
+        await timeout(0)
         const locations = intersections.map(intersection => moveLocationCloser(intersection.location, compCenter, depth == 0 ? 30 : 0))
 
         // get intersecion pairs
@@ -77,14 +81,18 @@ async function drawArcs(pathObj, radius, depth = 0) {
         for (let i = 0; i < pairs.length; i++) {
             const location1 = pairs[i][0]
             const location2 = pairs[i][1]
-            const newPath = makeRoundedPath(location1, location2, compCenter, radius)
-            newPath.path.strokeColor = '#ff000044'
+            
+            // const newPath = makeRoundedPath(location1, location2, compCenter, radius)
+            const newPath = createSubArc(location1, location2, pathObj.path)
+            newPath.path.strokeColor = 'green'
+            await timeout(0)
 
-            const pathMidPoint = newPath.path.getLocationAt(newPath.path.length / 2).point
-            if ((location1.path.closed && location1.path.contains(pathMidPoint)) ||
-                (location2.path.closed && location2.path.contains(pathMidPoint)) ||
+            const midPoint = location1.point.add(location2.point).divide(2)
+            if ((location1.path.closed && location1.path.contains(midPoint)) ||
+                (location2.path.closed && location2.path.contains(midPoint)) ||
                 (newPath.path.length < 30) ) {
-                newPath.path.strokeColor = '#0000ffaa'
+                newPath.path.dashArray = [10, 4];
+                await timeout(0)
                 continue
             }
 
@@ -117,6 +125,21 @@ function moveLocationCloser(location, point, distance) {
     return placeOnPath
 }
 
+function createSubArc(locStart,locEnd,parent){
+    const nearestStartOnParent = parent.getNearestLocation(locStart.point)
+    const nearestEndOnParent = parent.getNearestLocation(locEnd.point)
+    const startOffset = nearestStartOnParent.offset + 50
+    let endOffset = nearestEndOnParent.offset + 50
+    if (endOffset < startOffset && parent.closed) endOffset += parent.length
+    const lengthToAddPoints = endOffset - startOffset
+    if (lengthToAddPoints < 50) return new FieldArc(locStart,locEnd,[])
+    const pointsToAdd = floor(lengthToAddPoints / 50)-1
+    const spacing = 50
+    const newPointsOffsets = Array(pointsToAdd).fill(pointsToAdd).map((a, i) => startOffset + i * spacing)
+    const newPoints = newPointsOffsets.map(offset => parent.getPointAt(offset % parent.length))
+    return new FieldArc(locStart, locEnd, newPoints)
+}
+
 function makeRoundedPath(locStart, locEnd, center, radius) {
     const startToCenter = locStart.point.subtract(center)
     const endToCenter = locEnd.point.subtract(center)
@@ -124,6 +147,7 @@ function makeRoundedPath(locStart, locEnd, center, radius) {
     const endAngle = normalAngle(endToCenter.angle)
     let angleBetween = endAngle - startAngle
     if (angleBetween <= 0) angleBetween += 360
+    angleBetween = normalAngle(angleBetween)
     const midPointNumber = floor(abs(angleBetween) / 25)
     const midPointSpacing = angleBetween / (midPointNumber + 1)
     const midPointAngles = Array(midPointNumber).fill(midPointNumber).map((a, i) => startToCenter.angle + (i + 1) * midPointSpacing)
@@ -163,7 +187,7 @@ function getOrderedIntersections(path1, pathObjs) {
 
 
 function makeHoles() {
-    hole = new Hole(p(width * .5, height * .8), 80)
+    hole = new Hole(p(width * .5, height * .5), 150)
     for (let i = 0; i < 0; i++) {
         hole = new Hole(p(random(width), random(height)), random(30, 80))
         // hole.mirror()
@@ -174,10 +198,11 @@ function makeHoles() {
 
 function makeBorders() {
     createBorder(compCenter, pointFromAngle(random(360)), height * 2)
+    createBorder(compCenter, pointFromAngle(90), height * 2)
 
-    for (let i = 0; i < borders.length - 1; i++) {
-        for (let j = i + 1; j < borders.length; j++) {
-            borders[i].stickTo(borders[j].path)
-        }
-    }
+    // for (let i = 0; i < borders.length - 1; i++) {
+    //     for (let j = i + 1; j < borders.length; j++) {
+    //         borders[i].stickTo(borders[j].path)
+    //     }
+    // }
 }

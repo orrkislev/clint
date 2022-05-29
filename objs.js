@@ -227,6 +227,7 @@ class FieldArc extends myObj {
     }
 
     async draw() {
+        this.path.strokeColor = 'black'
         stroke(pencil)
         drawPath(this.path)
         await timeout(0)
