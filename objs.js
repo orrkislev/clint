@@ -28,7 +28,7 @@ class CurveCollider extends myObj {
         this.path.add(start)
         for (let i = 0; i < segments; i++) {
             const segDir = dir.clone()
-            segDir.angle += random(-15, 15)
+            segDir.angle += random(-25, 25)
             start = start.add(segDir)
             this.path.add(start)
         }
@@ -79,7 +79,8 @@ class Hole extends myObj {
             let dirFromCompCenter
             if (holeDirection) dirFromCompCenter = holeDirection.subtract(this.path.position).normalize()
             else dirFromCompCenter = this.path.position.subtract(compCenter).normalize()
-            this.tail = createBorder(this.path.segments[3].point, dirFromCompCenter, height)
+            this.path.rotate(dirFromCompCenter.angle-90)
+            this.tail = createBorder(this.path.position, dirFromCompCenter, height)
             this.makeLarger()
         }
         holes.push(this)
@@ -104,7 +105,7 @@ class Hole extends myObj {
         let dirFromCompCenter
         if (holeDirection) dirFromCompCenter = holeDirection.subtract(this.otherHole.path.position).normalize()
         else dirFromCompCenter = this.otherHole.path.position.subtract(compCenter).normalize()
-        this.otherHole.tail = createBorder(this.otherHole.path.segments[3].point, dirFromCompCenter, height)
+        this.otherHole.tail = createBorder(this.otherHole.path.position.point, dirFromCompCenter, height)
         this.otherHole.makeLarger()
     }
 
@@ -135,15 +136,43 @@ class Hole extends myObj {
     }
 }
 
+function normalAngle(angle) {
+    while (angle < 0) angle += 360
+    while (angle > 360) angle -= 360
+    return angle
+}
+
+function smallerAngle(angle) {
+    if (angle > 180) return angle - 360
+    else return angle
+}
+
+function normalAngleSpacing(p1,p2){
+    const angle1 = p1.angle
+    const angle2 = p2.angle
+    let angle = normalAngle(angle2-angle1)
+    angle = smallerAngle(angle)
+    return angle
+}
+
 class FieldArc extends myObj {
     constructor(loc1, loc2, midPoints) {
         super()
         const d = loc1.point.getDistance(loc2.point)
-        const force = constrain(d > 0 ? d/3 : 100, 0, 180) 
+        const force = constrain(d > 0 ? d/4 : 50, 0, 180) 
         let t1 = loc1.tangent.multiply(force)
         let t2 = loc2.tangent.multiply(force)
-        if (abs(loc1.point.subtract(compCenter).angle - t1.angle) > 90) t1.angle += 180
-        if (abs(loc2.point.subtract(compCenter).angle - t2.angle) > 90) t2.angle += 180
+
+        const t1Angle = normalAngle(t1.angle)
+        const dir1 = compCenter.subtract(loc1.point)
+        const dir1Angle = normalAngle(dir1.angle)
+
+        const t2Angle = normalAngle(t2.angle)
+        const dir2 = compCenter.subtract(loc2.point)
+        const dir2Angle = normalAngle(dir2.angle)
+
+        if (abs(t1Angle - dir1Angle) < 90) t1.angle += 180
+        if (abs(t2Angle - dir2Angle) < 90) t2.angle += 180
 
         const seg1 = new Segment(loc1.point, null, t1)
         const seg2 = new Segment(loc2.point, t2)
@@ -158,15 +187,16 @@ class FieldArc extends myObj {
             })
         }
         this.path.add(seg2)
-        this.path.smooth()
+        this.path.smooth() 
 
         this.path.firstSegment.handleOut = t1
         this.path.lastSegment.handleIn = t2
+
         allArcs.push(this)
     }
 
-    draw() {
-        // stroke(pencil)
+    async draw() {
         drawPath(this.path)
+        await timeout(50)
     }
 }
