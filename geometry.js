@@ -61,3 +61,18 @@ function fillPath(path){
     const ps = pathToPoints(path)
     fillShape(ps)
 }
+
+
+
+
+function spiralPath(center, rounds, spacing, startRadius){
+    const path = new Path()
+    const start = center.clone()
+    for (let i=0;i<rounds;i++){
+        const dir = pointFromAngle(i*60)
+        const p = start.add(dir.multiply(startRadius + i*spacing))
+        path.add(p)
+    }
+    path.smooth()
+    return path
+}

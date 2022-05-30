@@ -35,3 +35,7 @@ function waitForKey(key) {
         })
     })
 }
+function addEffect() {
+    filter(ERODE)
+    filter(DILATE)
+}

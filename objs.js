@@ -77,24 +77,21 @@ class Hole extends myObj {
                 seg.point.x += size * random(-0.2, 0.2)
             })
             this.path.segments[3].point.y += size * 0.5
-            let dirFromCompCenter
-            if (holeDirection) dirFromCompCenter = holeDirection.subtract(this.path.position).normalize()
-            else dirFromCompCenter = this.path.position.subtract(compCenter).normalize()
-            this.path.rotate(dirFromCompCenter.angle-90)
-            this.tail = createBorder(this.path.position, dirFromCompCenter, height)
-            this.makeLarger()
+            this.path.segments[3].handleIn = this.path.segments[3].handleIn.multiply(0.3)
+            this.path.segments[3].handleOut = this.path.segments[3].handleOut.multiply(0.3)
         }
+
         holes.push(this)
         colliders.push(this)
     }
-    makeLarger() {
-        this.pushis = []
-        const larger1 = this.path.clone()
-        larger1.scale(1.2, 1.2)
-        this.pushis.push(larger1)
-        const larger2 = this.path.clone()
-        larger2.scale(1.8, 1.8)
-        this.pushis.push(larger2)
+
+    calcBorder(){
+        this.borderStart = this.path.segments[3].point
+        if (holeDirection) this.growthDirection = holeDirection
+        else if (holeFocal) this.growthDirection = holeDirection.subtract(this.borderStart).normalize()
+        else this.growthDirection = this.borderStart.subtract(compCenter).normalize()
+        this.path.rotate(this.growthDirection.angle-90)
+        createBorder(this.borderStart, this.growthDirection, height*2)
     }
 
     mirror() {
@@ -102,12 +99,6 @@ class Hole extends myObj {
         this.otherHole.path = this.path.clone()
         this.otherHole.path.position.x = width - this.otherHole.path.position.x
         this.otherHole.path.scale(-1, 1)
-
-        let dirFromCompCenter
-        if (holeDirection) dirFromCompCenter = holeDirection.subtract(this.otherHole.path.position).normalize()
-        else dirFromCompCenter = this.otherHole.path.position.subtract(compCenter).normalize()
-        this.otherHole.tail = createBorder(this.otherHole.path.position.point, dirFromCompCenter, height)
-        this.otherHole.makeLarger()
     }
 
     applyPushes(path) {
@@ -129,6 +120,7 @@ class Hole extends myObj {
     draw() {
         this.path.strokeColor = 'black'
         fill(pencil)
+        stroke(pencil)
         strokeWeight(5)
         fillPath(this.path)
     }
@@ -174,8 +166,8 @@ class FieldArc extends myObj {
     constructor(loc1, loc2, midPoints) {
         super()
         const d = loc1.point.getDistance(loc2.point)
-        // const force = constrain(d > 0 ? d/4 : 50, 0, 180) 
-        const force = 50
+        // const force = constrain(d > 0 ? d/8 : 50, 0, 180) 
+        const force = tangentStrengh
         let t1 = loc1.tangent.multiply(force)
         let t2 = loc2.tangent.multiply(force)
 
