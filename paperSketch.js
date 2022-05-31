@@ -7,29 +7,33 @@ const lineSpacing = 30
 
 
 async function draw() {
-    background(pencil)
+    background(BG)
     growthCenter = new Point(width*.5, height * .1)
 
-    for (let i = 0; i < 3; i++) Hole.Random()
+    for (let i = 0; i < 10; i++) Hole.Random()
     for (hole of holes) hole.createTail()
     for (hole of holes) hole.trimTail()
     for (hole of holes) hole.finalShape()
+    // for (hole of holes) hole.draw()
 
     basePath = makeSpine2(p(-width * 0.2, height), p(width * 1.2, height), 10)
+    basePath.strokeColor = 'green'
 
     for (let y = 0; y < height; y += 20) {
         basePath.segments.forEach(p => p.point.y -= random(20, 30))
 
         newPath = basePath.clone()
+        holeSections = []
         for (hole of holes) {
-            const intersections = getOrderedIntersections(basePath, [hole.path])
+            const intersections = getOrderedIntersections(newPath, [hole.path])
             if (intersections.length>1) {
                 const firstIntersection = intersections[0]
                 const lastIntersection = intersections[intersections.length - 1]
-                part1 = basePath.getSection(null, firstIntersection.point)
-                part3 = basePath.getSection(lastIntersection.point, null)
+                part1 = newPath.getSection(null, firstIntersection.point)
+                part3 = newPath.getSection(lastIntersection.point, null)
                 part2 = hole.path.getSection(firstIntersection.point, lastIntersection.point)
-                part2.strokeColor = 'blue'
+                hole.drawingPartOf()
+                holeSections.push(part2)
                 newPath = joinAndFillet([part1, part2, part3], 50) || newPath
             }
         }

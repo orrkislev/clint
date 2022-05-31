@@ -35,7 +35,7 @@ class Hole {
         const tail2 = tailOffset1.getSection(intersections[1].point)
         const holePart = this.hole.getSection(intersections[0].point, intersections[1].point)
         this.path = joinAndFillet([tail1, holePart, tail2],50)
-        this.path.strokeColor = pencil
+        this.path.strokeColor = '#00000044'
 
         tailOffset1.remove()
         tailOffset2.remove()
@@ -44,8 +44,23 @@ class Hole {
         holePart.remove()
     }
 
+    draw(){
+        fill(pencil)
+        noStroke()
+        fillPath(this.path)
+        noFill()
+        stroke(pencil)
+    }
+
+    drawingPartOf(){
+        if (!this.drawn) {
+            this.drawn = true
+            this.draw()
+        }
+    }
+
     static Random() {
-        let pos = new Point(random(width), random(height))
+        let pos = new Point(random(width*.2,width*.8), random(height*.2,height*.8))
         let size = 50
         let goodPos = false
         while (!goodPos) {
@@ -53,7 +68,7 @@ class Hole {
             for (const hole of holes) {
                 if (pos.getDistance(hole.pos) < size + hole.size + 60) {
                     goodPos = false
-                    pos = new Point(random(width), random(height))
+                    pos = new Point(random(width*.2,width*.8), random(height*.2,height*.8))
                 }
             }
         }

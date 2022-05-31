@@ -15,23 +15,35 @@ const pointFromAngle = (angle) => {
 }
 
 paper.Path.prototype.getSection = function (from, to) {
-    if (typeof from === 'number') from = this.getLocationAt(from)
-    else if (from instanceof paper.Point) from = this.getNearestLocation(from)
-    else if (from instanceof paper.CurveLocation) from = this.getNearestLocation(from.point)
-    if (!from) from = from = this.getLocationAt(0)
+    
+    if (typeof from === 'number') from = this.getPointAt(from)
+    else if (from instanceof paper.Point) from = this.getNearestPoint(from)
+    else if (from instanceof paper.CurveLocation) from = this.getNearestPoint(from.point)
+    if (!from) from = from = this.getPointAt(0)
 
-    if (typeof to === 'number') to = this.getLocationAt(to)
-    else if (to instanceof paper.Point) to = this.getNearestLocation(to)
-    else if (to instanceof paper.CurveLocation) to = this.getNearestLocation(to.point)
-    if (!to) to = this.getLocationAt(this.length)
+    if (typeof to === 'number') to = this.getPointAt(to)
+    else if (to instanceof paper.Point) to = this.getNearestPoint(to)
+    else if (to instanceof paper.CurveLocation) to = this.getNearestPoint(to.point)
+    if (!to) to = this.getPointAt(this.length)
 
     if (from.equals(to)) return
 
     const newPath = this.clone()
-    const newPath2 = newPath.splitAt(from.offset)
-    const keepPath = newPath.getLocationOf(to.point) ? newPath : newPath2
-    const keepPath2 = keepPath.splitAt(keepPath.getLocationOf(to.point).offset)
-    return keepPath.getLocationOf(from.point) ? keepPath : keepPath2
+    const newPath2 = newPath.splitAt(newPath.getNearestLocation(from).offset)
+    // const keepPath = newPath.getLocationOf(to) ? newPath : newPath2
+    const keepPath = pointOnWhichPath(to, newPath, newPath2)
+    const keepPath2 = keepPath.splitAt(keepPath.getNearestLocation(to).offset)
+    return pointOnWhichPath(from, keepPath, keepPath2)
+}
+
+function pointOnWhichPath(point,path1,path2){
+    if (!path1) return path2
+    if (!path2) return path1
+    if (path1.getLocationOf(point)) return path1
+    if (path2.getLocationOf(point)) return path2
+    const pointOnPath1 = path1.getNearestPoint(point)
+    const pointOnPath2 = path2.getNearestPoint(point)
+    return pointOnPath1.getDistance(point) < pointOnPath2.getDistance(point) ? path1 : path2
 }
 
 function makeSpine2(v1, v2, sunPoints) {
@@ -144,26 +156,22 @@ function fillField(fieldPath) {
 function joinAndFillet(paths, radius) {
     if (paths.includes(null)) return null
     const sections = []
-    for (let i = 0; i < paths.length; i++) {
-        if (i == 0) {
-            if (paths[i].length > radius) sections.push(paths[i].getSection(null, paths[i].length - radius))
-            else sections.push(new Path(paths[i].firstSegment.point))
-        } else if (i == paths.length - 1) {
-            if (paths[i].length > radius) sections.push(paths[i].getSection(radius, null))
-            else sections.push(new Path(paths[i].lastSegment.point))
-        } else {
-            if (paths[i].length>radius*2) sections.push(paths[i].getSection(radius, paths[i].length - radius))
-        }
-    }
+    if (paths[0].length > radius) sections.push(paths[0].getSection(null, paths[0].length - radius))
+    else sections.push(new Path(paths[0].firstSegment.point))
+
+    if (paths[1].length > radius * 2) sections.push(paths[1].getSection(radius, paths[1].length - radius))
+
+    if (paths[2].length > radius) sections.push(paths[2].getSection(radius))
+    else sections.push(new Path(paths[2].lastSegment.point))
+
+    if (sections.includes(null)) return null
 
     sections[0].lastSegment.handleOut = sections[0].lastSegment.handleIn
     sections[0].lastSegment.handleOut.length = -radius
-
-    sections[sections.length-1].firstSegment.handleIn = sections[sections.length-1].firstSegment.handleOut
-    sections[sections.length-1].firstSegment.handleIn.length = -radius
+    sections[sections.length - 1].firstSegment.handleIn = sections[sections.length - 1].firstSegment.handleOut
+    sections[sections.length - 1].firstSegment.handleIn.length = -radius
 
     const result = new Path()
     sections.forEach(section => result.join(section))
-    result.strokeWidth = 3
     return result
 }
