@@ -1,6 +1,11 @@
 const BG = '#F3F2D4'
 let pencil = '#1B1B0F'
 
+const pallete1 = ['#de8ba0','#a6465b','#e5bcb6','#de4704','#f8a306']
+const pallete2 = ['#4861a4','#017f82','#010001','#fefffe','#37166d','#7b0517','#ed8845','#de0148']
+const pallete3 = ["#F65817","#1F8734","#A82E79","#3E7282","#FA9B4E"]
+const colors = choose([pallete1, pallete2, pallete3])
+
 const tangentStrengh = 120
 const pushPointBack = tangentStrengh
 const lineSpacing = random(10,60)
