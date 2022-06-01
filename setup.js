@@ -32,8 +32,10 @@ function keyPressed(){
         }
     }
     if (keyCode == 83) {
-        var url = "data:image/svg+xml;utf8," + encodeURIComponent(paper.project.exportSVG({asString:true}));
-        var link = document.createElement("a");
+        const bounds = new paper.Rectangle(p(0,0),p(width,height))
+        const svg = paper.project.exportSVG({asString:true, bounds:bounds})
+        const url = "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+        const link = document.createElement("a");
         link.download = 'this.svg';
         link.href = url;
         link.click();

@@ -130,18 +130,31 @@ function getFillet(path1, path2, radius) {
 
 function fillField(fieldPath) {
     const pathToFill = fieldPath.clone()
-    const base1_1 = new Segment(fieldPath.firstSegment.point.add(fieldPath.firstSegment.location.tangent.multiply(-2000)))
-    const base1_2 = new Segment(base1_1.point.add(fieldPath.firstSegment.location.normal.multiply(2000)))
-    const base2_1 = new Segment(fieldPath.lastSegment.point.add(fieldPath.lastSegment.location.tangent.multiply(2000)))
-    const base2_2 = new Segment(base2_1.point.add(fieldPath.lastSegment.location.normal.multiply(2000)))
+    const sideDir = sceneDir=='horizontal' ? DIRS.RIGHT : DIRS.DOWN
+    sideDir.length = width
+    const frontDir = sceneDir=='horizontal' ? DIRS.UP : DIRS.RIGHT
+    frontDir.length = width
+    const firstPoint = pathToFill.firstSegment.point
+    const lastPoint = pathToFill.lastSegment.point
+
+    const base1_1 = new Segment(firstPoint.add(sideDir.multiply(-1)))
+    const base1_2 = new Segment(base1_1.point.add(frontDir))
+    const base2_1 = new Segment(lastPoint.add(sideDir))
+    const base2_2 = new Segment(base2_1.point.add(frontDir))
     pathToFill.segments.unshift(base1_1)
     pathToFill.segments.unshift(base1_2)
     pathToFill.segments.push(base2_1)
     pathToFill.segments.push(base2_2)
     colorMode(HSB)
     // if (colorfull)  fill(random(255),50,150)
-    if (colorfull) fill(choose(colors))
-    else fill(BG)
+    if (colorfull) {
+        const chosenColor = colors.shift()
+        colors.sort((a,b)=>random(-1,1))
+        colors.push(chosenColor)
+        const clr1 = color(chosenColor)
+        const clr2 = color(hue(clr1) + random(-10,10),saturation(clr1)+random(-10,10),brightness(clr1))
+        fill(clr2)
+    }else fill(BG)
     noStroke()
     fillPath(pathToFill)
     noFill()
@@ -155,7 +168,7 @@ function joinAndFillet(paths, r1, r2) {
     if (paths[0].length > r1) sections.push(paths[0].getSection(null, paths[0].length - r1))
     else sections.push(new Path(paths[0].firstSegment.point))
 
-    r2 = min(r2, paths[1].length/2+5)
+    r2 = min(r2, paths[1].length/3)
     if (paths[1].length > r2 * 2) sections.push(paths[1].getSection(r2, paths[1].length - r2))
 
     if (paths[2].length > r1) sections.push(paths[2].getSection(r1))

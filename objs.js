@@ -38,20 +38,23 @@ class Hole {
         const intersections = getOrderedIntersections(tailOffset1, [this.hole])
         if (intersections.length < 2) {
             this.path = this.hole
-            return
-        }
-        const tail1 = tailOffset1.getSection(null, intersections[0].point)
-        const tail2 = tailOffset1.getSection(intersections[1].point)
-        const holePart = this.hole.getSection(intersections[0].point, intersections[1].point)
-        const r = min(this.size,50) * pixelSize
-        this.path = joinAndFillet([tail1, holePart, tail2], r,r)
-        this.path.strokeColor = '#00000044'
+        } else {
+            const tail1 = tailOffset1.getSection(null, intersections[0].point)
+            const tail2 = tailOffset1.getSection(intersections[1].point)
+            const holePart = this.hole.getSection(intersections[0].point, intersections[1].point)
+            const r = min(this.size,50) * pixelSize
+            this.path = joinAndFillet([tail1, holePart, tail2], r,r)
+            this.path.strokeColor = '#00000044'
 
+            tail1.remove()
+            tail2.remove()
+            holePart.remove()
+        }
+
+        this.hole.remove()
+        this.tail.remove()
         tailOffset1.remove()
         tailOffset2.remove()
-        tail1.remove()
-        tail2.remove()
-        holePart.remove()
     }
 
     draw() {
@@ -83,7 +86,7 @@ class Hole {
         xrange = xrange || [width*.2,width*.8]
         yrange = yrange || [height*.2,height*.8]
         let pos = new Point(randomRange(xrange), randomRange(yrange))
-        let size = baseSize * random(0.5,1.2) * pixelSize || width*random(0.01,0.05)
+        let size = baseSize * random(0.5,1.2) * pixelSize || width*random(0.01,0.08)
         let goodPos = false
         let tries = 0
         while (!goodPos) {
@@ -92,7 +95,7 @@ class Hole {
                 if (pos.getDistance(hole.pos) < size + hole.size + 60 * pixelSize) {
                     goodPos = false
                     pos = new Point(randomRange(xrange), randomRange(yrange))
-                    size = baseSize * random(0.5,1.2) * pixelSize || width*random(0.05,0.1)
+                    size = baseSize * random(0.5,1.2) * pixelSize || width*random(0.01,0.08)
                     break
                 }
             }
