@@ -2,16 +2,21 @@ let holes = []
 
 class Hole {
     constructor(pos, size) {
-        this.size = size; this.pos = pos
-        this.hole = new Path.Circle(pos, size)
-        this.hole.segments.forEach(seg => {
-            seg.point = seg.point.subtract(pos).multiply(random(1, 1.5)).add(pos)
-        })
+        if (pos && size) {
+            this.size = size; this.pos = pos
+            this.hole = new Path.Circle(pos, size)
+            this.hole.segments.forEach(seg => {
+                seg.point = seg.point.subtract(pos).multiply(random(1, 1.5)).add(pos)
+            })
+            this.hole.strokeColor = '#00000044'
+            this.createTail()
+        }
         holes.push(this)
     }
 
     createTail() {
         this.tail = makeSpine(this.hole.position, this.hole.position.subtract(growthCenter).normalize(), height)
+        this.tail.strokeColor = '#00000044'
     }
 
     trimTail() {
@@ -26,15 +31,20 @@ class Hole {
     }
 
     finalShape() {
-        const tailOffset1 = offsetPath(this.tail, -2.5)
-        const tailOffset2 = offsetPath(this.tail, 2.5)
+        const tailOffset1 = offsetPath(this.tail, -.5)
+        const tailOffset2 = offsetPath(this.tail, .5)
         tailOffset1.reverse()
         tailOffset1.join(tailOffset2)
         const intersections = getOrderedIntersections(tailOffset1, [this.hole])
-        const tail1 = tailOffset1.getSection(null,intersections[0].point)
+        if (intersections.length < 2) {
+            this.path = this.hole
+            return
+        }
+        const tail1 = tailOffset1.getSection(null, intersections[0].point)
         const tail2 = tailOffset1.getSection(intersections[1].point)
         const holePart = this.hole.getSection(intersections[0].point, intersections[1].point)
-        this.path = joinAndFillet([tail1, holePart, tail2],50)
+        const r = min(this.size,50) * pixelSize
+        this.path = joinAndFillet([tail1, holePart, tail2], r,r)
         this.path.strokeColor = '#00000044'
 
         tailOffset1.remove()
@@ -44,7 +54,7 @@ class Hole {
         holePart.remove()
     }
 
-    draw(){
+    draw() {
         fill(pencil)
         noStroke()
         fillPath(this.path)
@@ -52,26 +62,47 @@ class Hole {
         stroke(pencil)
     }
 
-    drawingPartOf(){
+    drawingPartOf() {
         if (!this.drawn) {
             this.drawn = true
             this.draw()
         }
     }
 
-    static Random() {
-        let pos = new Point(random(width*.2,width*.8), random(height*.2,height*.8))
-        let size = 50
+    mirror() {
+        if (abs(this.pos.x - width / 2) > this.size*2) {
+            const newPos = new Point(width - this.pos.x, this.pos.y)
+            new Hole(newPos, this.size)
+        } else {
+            this.hole.translate(new Point(width / 2 - this.pos.x, 0))
+            this.tail.translate(new Point(width / 2 - this.pos.x, 0))
+        }
+    }
+
+    static Random(xrange,yrange,baseSize) {
+        xrange = xrange || [width*.2,width*.8]
+        yrange = yrange || [height*.2,height*.8]
+        let pos = new Point(randomRange(xrange), randomRange(yrange))
+        let size = baseSize * random(0.5,1.2) * pixelSize || width*random(0.01,0.05)
         let goodPos = false
+        let tries = 0
         while (!goodPos) {
             goodPos = true
             for (const hole of holes) {
-                if (pos.getDistance(hole.pos) < size + hole.size + 60) {
+                if (pos.getDistance(hole.pos) < size + hole.size + 60 * pixelSize) {
                     goodPos = false
-                    pos = new Point(random(width*.2,width*.8), random(height*.2,height*.8))
+                    pos = new Point(randomRange(xrange), randomRange(yrange))
+                    size = baseSize * random(0.5,1.2) * pixelSize || width*random(0.05,0.1)
+                    break
                 }
             }
+            if (tries++ > 100) return
         }
         return new Hole(pos, size)
+    }
+
+    static RandomMirror(){
+        const hole = Hole.Random([width*.2,width*.5])
+        if (hole) hole.mirror()
     }
 }

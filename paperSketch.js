@@ -5,37 +5,139 @@ const tangentStrengh = 120
 const pushPointBack = tangentStrengh
 const lineSpacing = 30
 
+const colorfull = random()<0.5
+
 
 async function draw() {
     background(BG)
-    growthCenter = new Point(width*.5, height * .1)
 
-    for (let i = 0; i < 10; i++) Hole.Random()
-    for (hole of holes) hole.createTail()
+    // const scene = choose(['horizontal', 'vertical'])
+    const scene = 'arcs_horizontal'
+
+    if (scene == 'horizontal') {
+        growthCenter = new Point(random(width), random(-height,0))
+        fieldPaths = getFieldPaths_waves_horizontal()
+    } else if (scene == 'arcs_horizontal') {
+        growthCenter = new Point(random(width), random(-height,0))
+        fieldPaths = getFieldPaths_arcs_horizontal()
+    } else if (scene == 'vertical') {
+        growthCenter = new Point(random(width), height/2)
+        fieldPaths = getFieldPaths_waves_vertical()
+    } else if (scene == 'arcs_vertical') {
+        growthCenter = new Point(random(width), height/2)
+        fieldPaths = getFieldPaths_arcs_vertical()
+    }
+    
+
+    for (let i = 0; i < 10; i++) Hole.RandomMirror()
+
+
     for (hole of holes) hole.trimTail()
     for (hole of holes) hole.finalShape()
-    // for (hole of holes) hole.draw()
+    await applyField(fieldPaths)
 
-    basePath = makeSpine2(p(-width * 0.2, height), p(width * 1.2, height), 10)
-    basePath.strokeColor = 'green'
 
-    for (let y = 0; y < height; y += 20) {
-        basePath.segments.forEach(p => p.point.y -= random(20, 30))
+    // FINISH IMAGE
+    stroke(BG)
+    strokeWeight(50*pixelSize)
+    rect(0, 0, width, height)
+    rect(0, 0, width, height, 100*pixelSize)
+    borderPath = new Path.Rectangle(new paper.Rectangle(25*pixelSize,25*pixelSize,width-50*pixelSize,height-50*pixelSize), 75*pixelSize)
+    stroke(pencil)
+    drawPath(borderPath)
+    addEffect()
+    return
+}
 
-        newPath = basePath.clone()
-        holeSections = []
+function getFieldPaths_waves_vertical() {
+    const basePath = makeSpine2(CORNERS.TOP_LEFT, CORNERS.BOTTOM_LEFT, 10)
+    const paths = []
+    for (let x = CORNERS.TOP_LEFT.x; x < CORNERS.TOP_RIGHT.x; x += 20 * pixelSize) {
+        basePath.segments.forEach(p => p.point.x += random(15,25) * pixelSize)
+        paths.push(basePath.clone())
+    }
+    return paths
+}
+
+function getFieldPaths_arcs_vertical() {
+    const paths = []
+    for (let x = CORNERS.TOP_LEFT.x; x < CORNERS.TOP_RIGHT.x; x += 20 * pixelSize) {
+        const distFromCenter = x - growthCenter.x
+        newPath = new Path([p(x, CORNERS.TOP_LEFT.y),p(x+distFromCenter/3,height/2), p(x, CORNERS.BOTTOM_LEFT.y)])
+        newPath.smooth()
+        paths.push(newPath)
+    }
+    return paths
+}
+
+function getFieldPaths_arcs_horizontal() {
+    const paths = []
+    for (let y = CORNERS.BOTTOM_LEFT.y; y > CORNERS.TOP_RIGHT.y; y -= 20 * pixelSize) {
+        const distFromCenter = y - growthCenter.y
+        newPath = new Path([p(CORNERS.TOP_LEFT.x, y),p(width/2,y+distFromCenter/3), p(CORNERS.TOP_RIGHT.x,y)])
+        newPath.smooth()
+        paths.push(newPath)
+    }
+    return paths
+}
+
+function getFieldPaths_arcs() {
+    const paths = []
+    for (let y = height; y >= 0; y -= 10 * pixelSize) {
+        newPath = new Path.Arc({ from: p(width * .5 - y, 0), through: p(width * .5, y), to: p(width * .5 + y, 0) });
+        newPath.simplify(30)
+        paths.push(newPath)
+    }
+    return paths
+}
+
+function getFieldPaths_waves_horizontal() {
+    const basePath = makeSpine2(CORNERS.BOTTOM_LEFT, CORNERS.BOTTOM_RIGHT, 10)
+    const paths = []
+    for (let y = CORNERS.BOTTOM_LEFT.y; y > CORNERS.TOP_LEFT.y; y -= 20 * pixelSize) {
+        basePath.segments.forEach(p => p.point.y -= random(15,25) * pixelSize)
+        paths.push(basePath.clone())
+    }
+    return paths
+}
+
+function getFieldPaths_circles(centerPoint) {
+    const maxDistance = Math.max(...Object.values(CORNERS).map(p => centerPoint.getDistance(p)))
+    const paths = []
+    for (let r = 30 * pixelSize; r < maxDistance; r += random(15,25) * pixelSize) {
+        newPath = new Path.Circle(centerPoint, r)
+        paths.push(newPath)
+    }
+    return paths
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+async function applyField(fieldPaths) {
+    for (path of fieldPaths) {
+        newPath = path.clone()
+        const holesToTryAgain = []
         for (hole of holes) {
             const intersections = getOrderedIntersections(newPath, [hole.path])
-            if (intersections.length>1) {
-                const firstIntersection = intersections[0]
-                const lastIntersection = intersections[intersections.length - 1]
-                part1 = newPath.getSection(null, firstIntersection.point)
-                part3 = newPath.getSection(lastIntersection.point, null)
-                part2 = hole.path.getSection(firstIntersection.point, lastIntersection.point)
-                hole.drawingPartOf()
-                holeSections.push(part2)
-                newPath = joinAndFillet([part1, part2, part3], 50) || newPath
-            }
+            if (intersections.length == 1) holesToTryAgain.push(hole)
+            if (intersections.length > 1) newPath = makeField(newPath, hole, intersections)
+        }
+        for (hole of holesToTryAgain) {
+            const intersections = getOrderedIntersections(newPath, [hole.path])
+            if (intersections.length > 1) newPath = makeField(newPath, hole, intersections)
         }
         newPath.strokeColor = pencil
 
@@ -43,69 +145,17 @@ async function draw() {
         drawPath(newPath)
         await timeout(0)
     }
-
-    return
-
-    compCenter = new Point(width / 2, 0)
-    holeFocal = null
-    holeDirection = DIRS.DOWN
-
-    background(BG)
-    makeHoles()
-    makeBorders()
-
-    holes.forEach(hole => hole.draw())
-    borders.forEach(border => border.draw())
-
-    baseLines = createBaseLines()
-    for (baseLine of baseLines) {
-        await drawArcs({ path: baseLine }, 0)
-    }
 }
 
-function createBaseLines() {
-    let baseLineType = choose(['horizontal', 'vertical', 'circles',])
-    baseLineType = 'circles'
-    const baseLines = []
-    if (baseLineType == 'horizontal') {
-        r = 0
-        for (let y = 0; y < height; y += lineSpacing * random(0.6, 1)) {
-            const dirPath = new Path([p(-width * 0.5, y), p(width / 2, y + r), p(width * 1.5, y)])
-            dirPath.smooth()
-            baseLines.push(dirPath)
-            r += 15
-        }
-    } else if (baseLineType == 'vertical') {
-        for (let x = 0; x < width; x += lineSpacing * random(0.6, 1)) {
-            const dirPath = new Path([p(x, -height * 0.5), p(x, height * 1.5)])
-            baseLines.push(dirPath)
-        }
-    } else if (baseLineType == 'circles') {
-        const corners = [new Point(0, 0), new Point(width, 0), new Point(width, height), new Point(0, height)]
-        const maxDist = corners.reduce((a, b) => max(a, b.getDistance(compCenter)), 0)
-        for (let r = 50; r < maxDist; r += lineSpacing) {
-            const dirPath = new Path.Circle(compCenter, r)
-            dirPath.rotate(180)
-            baseLines.push(dirPath)
-        }
-    }
-    return baseLines
-}
-
-
-
-
-function makeHoles() {
-    // spiral = spiralPath(p(width/2,height*1.5),30,30, 100)
-    // const numPoints = 50
-    // const spiralLength = spiral.length
-    // const spacing = spiralLength / (numPoints + 1)
-    // const points = Array(numPoints).fill(numPoints).map((a, i) => spiral.getLocationAt(i * spacing).point)
-
-    // for (let i = 0; i < points.length; i++) {
-    //     new Hole(points[i], random(30, 50))
-    // }
-    new Hole(p(width / 2, height / 2), 150)
+function makeField(newPath, hole, intersections) {
+    const firstIntersection = intersections[0]
+    const lastIntersection = intersections[intersections.length - 1]
+    part1 = newPath.getSection(null, firstIntersection.point)
+    part3 = newPath.getSection(lastIntersection.point, null)
+    part2 = hole.path.getSection(firstIntersection.point, lastIntersection.point)
+    if (part2.firstSegment.point.getDistance(part1.lastSegment.point) > 2) part2.reverse()
+    hole.drawingPartOf()
+    return joinAndFillet([part1, part2, part3], 100*pixelSize, 50*pixelSize) || newPath
 }
 
 

@@ -2,12 +2,7 @@ const Path = paper.Path
 const Point = paper.Point
 const Segment = paper.Segment
 
-const DIRS = {
-    UP: new Point(0, -1),
-    DOWN: new Point(0, 1),
-    LEFT: new Point(-1, 0),
-    RIGHT: new Point(1, 0),
-}
+const DIRS = { UP: new Point(0, -1), DOWN: new Point(0, 1), LEFT: new Point(-1, 0), RIGHT: new Point(1, 0) }
 const p = (x, y) => new Point(x, y)
 const randomPoint = () => new Point(random(-1, 1), random(-1, 1)).normalize()
 const pointFromAngle = (angle) => {
@@ -135,17 +130,17 @@ function getFillet(path1, path2, radius) {
 
 function fillField(fieldPath) {
     const pathToFill = fieldPath.clone()
-    const base1_1 = new Segment(newPath.firstSegment.point.add(p(-width, -height)))
-    const base1_2 = new Segment(newPath.firstSegment.point.add(p(-width, -height)))
-    const base2_1 = new Segment(newPath.lastSegment.point.add(p(width, -height)))
-    const base2_2 = new Segment(newPath.lastSegment.point.add(p(width, -height)))
-    pathToFill.segments.unshift(base1_2)
+    const base1_1 = new Segment(fieldPath.firstSegment.point.add(fieldPath.firstSegment.location.tangent.multiply(-2000)))
+    const base1_2 = new Segment(base1_1.point.add(fieldPath.firstSegment.location.normal.multiply(2000)))
+    const base2_1 = new Segment(fieldPath.lastSegment.point.add(fieldPath.lastSegment.location.tangent.multiply(2000)))
+    const base2_2 = new Segment(base2_1.point.add(fieldPath.lastSegment.location.normal.multiply(2000)))
     pathToFill.segments.unshift(base1_1)
+    pathToFill.segments.unshift(base1_2)
     pathToFill.segments.push(base2_1)
     pathToFill.segments.push(base2_2)
     colorMode(HSB)
-    // fill(random(255),50,150)
-    fill(BG)
+    if (colorfull)  fill(random(255),50,150)
+    else fill(BG)
     noStroke()
     fillPath(pathToFill)
     noFill()
@@ -153,23 +148,24 @@ function fillField(fieldPath) {
     pathToFill.remove()
 }
 
-function joinAndFillet(paths, radius) {
+function joinAndFillet(paths, r1, r2) {
     if (paths.includes(null)) return null
     const sections = []
-    if (paths[0].length > radius) sections.push(paths[0].getSection(null, paths[0].length - radius))
+    if (paths[0].length > r1) sections.push(paths[0].getSection(null, paths[0].length - r1))
     else sections.push(new Path(paths[0].firstSegment.point))
 
-    if (paths[1].length > radius * 2) sections.push(paths[1].getSection(radius, paths[1].length - radius))
+    r2 = min(r2, paths[1].length/2+5)
+    if (paths[1].length > r2 * 2) sections.push(paths[1].getSection(r2, paths[1].length - r2))
 
-    if (paths[2].length > radius) sections.push(paths[2].getSection(radius))
+    if (paths[2].length > r1) sections.push(paths[2].getSection(r1))
     else sections.push(new Path(paths[2].lastSegment.point))
 
     if (sections.includes(null)) return null
 
     sections[0].lastSegment.handleOut = sections[0].lastSegment.handleIn
-    sections[0].lastSegment.handleOut.length = -radius
+    sections[0].lastSegment.handleOut.length = -r1
     sections[sections.length - 1].firstSegment.handleIn = sections[sections.length - 1].firstSegment.handleOut
-    sections[sections.length - 1].firstSegment.handleIn.length = -radius
+    sections[sections.length - 1].firstSegment.handleIn.length = -r1
 
     const result = new Path()
     sections.forEach(section => result.join(section))

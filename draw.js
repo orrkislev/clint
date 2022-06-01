@@ -7,7 +7,7 @@ nxs = 0.02
 function drawDotXY(x, y) {
     allDots++
     nx += nxs
-    strokeWeight(3+noise(nx)*3)
+    strokeWeight((2+noise(nx)*2) * pixelSize)
     // strokeWeight(1)
     line(x, y, x, y)
 }
@@ -23,8 +23,8 @@ function drawShape(ps, x = 0, y = 0) {
 }
 
 function timeout(ms) {
-    return waitForKey(32).then(() => new Promise(resolve => setTimeout(resolve, max(ms, 100))))
-    // return new Promise(resolve => setTimeout(resolve, ms));
+    // return waitForKey(32).then(() => new Promise(resolve => setTimeout(resolve, max(ms, 100))))
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function waitForKey(key) {
