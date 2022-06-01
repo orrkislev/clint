@@ -3,16 +3,16 @@ let pencil = '#1B1B0F'
 
 const tangentStrengh = 120
 const pushPointBack = tangentStrengh
-const lineSpacing = 30
+const lineSpacing = random(10,60)
 
 const colorfull = random()<0.5
-
+const holeNumber = random(1,10)
+const mirror = random()<0.5
 
 async function draw() {
     background(BG)
 
-    // const scene = choose(['horizontal', 'vertical'])
-    const scene = 'arcs_horizontal'
+    const scene = choose(['horizontal', 'vertical', 'arcs_horizontal', 'arcs_vertical'])
 
     if (scene == 'horizontal') {
         growthCenter = new Point(random(width), random(-height,0))
@@ -27,9 +27,12 @@ async function draw() {
         growthCenter = new Point(random(width), height/2)
         fieldPaths = getFieldPaths_arcs_vertical()
     }
-    
 
-    for (let i = 0; i < 10; i++) Hole.RandomMirror()
+
+    for (let i = 0; i < holeNumber; i++) {
+        if (mirror) Hole.RandomMirror()
+        else Hole.Random()
+    }
 
 
     for (hole of holes) hole.trimTail()
@@ -52,8 +55,8 @@ async function draw() {
 function getFieldPaths_waves_vertical() {
     const basePath = makeSpine2(CORNERS.TOP_LEFT, CORNERS.BOTTOM_LEFT, 10)
     const paths = []
-    for (let x = CORNERS.TOP_LEFT.x; x < CORNERS.TOP_RIGHT.x; x += 20 * pixelSize) {
-        basePath.segments.forEach(p => p.point.x += random(15,25) * pixelSize)
+    for (let x = CORNERS.TOP_LEFT.x; x < CORNERS.TOP_RIGHT.x; x += lineSpacing * pixelSize) {
+        basePath.segments.forEach(p => p.point.x += lineSpacing * random(0.8,1.2) * pixelSize)
         paths.push(basePath.clone())
     }
     return paths
@@ -61,7 +64,7 @@ function getFieldPaths_waves_vertical() {
 
 function getFieldPaths_arcs_vertical() {
     const paths = []
-    for (let x = CORNERS.TOP_LEFT.x; x < CORNERS.TOP_RIGHT.x; x += 20 * pixelSize) {
+    for (let x = CORNERS.TOP_LEFT.x; x < CORNERS.TOP_RIGHT.x; x += lineSpacing * pixelSize) {
         const distFromCenter = x - growthCenter.x
         newPath = new Path([p(x, CORNERS.TOP_LEFT.y),p(x+distFromCenter/3,height/2), p(x, CORNERS.BOTTOM_LEFT.y)])
         newPath.smooth()
@@ -72,7 +75,7 @@ function getFieldPaths_arcs_vertical() {
 
 function getFieldPaths_arcs_horizontal() {
     const paths = []
-    for (let y = CORNERS.BOTTOM_LEFT.y; y > CORNERS.TOP_RIGHT.y; y -= 20 * pixelSize) {
+    for (let y = CORNERS.BOTTOM_LEFT.y; y > CORNERS.TOP_RIGHT.y; y -= lineSpacing * pixelSize) {
         const distFromCenter = y - growthCenter.y
         newPath = new Path([p(CORNERS.TOP_LEFT.x, y),p(width/2,y+distFromCenter/3), p(CORNERS.TOP_RIGHT.x,y)])
         newPath.smooth()
@@ -83,7 +86,7 @@ function getFieldPaths_arcs_horizontal() {
 
 function getFieldPaths_arcs() {
     const paths = []
-    for (let y = height; y >= 0; y -= 10 * pixelSize) {
+    for (let y = height; y >= 0; y -= lineSpacing * pixelSize) {
         newPath = new Path.Arc({ from: p(width * .5 - y, 0), through: p(width * .5, y), to: p(width * .5 + y, 0) });
         newPath.simplify(30)
         paths.push(newPath)
@@ -94,8 +97,8 @@ function getFieldPaths_arcs() {
 function getFieldPaths_waves_horizontal() {
     const basePath = makeSpine2(CORNERS.BOTTOM_LEFT, CORNERS.BOTTOM_RIGHT, 10)
     const paths = []
-    for (let y = CORNERS.BOTTOM_LEFT.y; y > CORNERS.TOP_LEFT.y; y -= 20 * pixelSize) {
-        basePath.segments.forEach(p => p.point.y -= random(15,25) * pixelSize)
+    for (let y = CORNERS.BOTTOM_LEFT.y; y > CORNERS.TOP_LEFT.y; y -= lineSpacing * pixelSize) {
+        basePath.segments.forEach(p => p.point.y -= lineSpacing * random(0.8,1.2) * pixelSize)
         paths.push(basePath.clone())
     }
     return paths
@@ -104,7 +107,7 @@ function getFieldPaths_waves_horizontal() {
 function getFieldPaths_circles(centerPoint) {
     const maxDistance = Math.max(...Object.values(CORNERS).map(p => centerPoint.getDistance(p)))
     const paths = []
-    for (let r = 30 * pixelSize; r < maxDistance; r += random(15,25) * pixelSize) {
+    for (let r = 30 * pixelSize; r < maxDistance; r += lineSpacing * random(0.8,1.2) * pixelSize) {
         newPath = new Path.Circle(centerPoint, r)
         paths.push(newPath)
     }
