@@ -16,6 +16,7 @@ const holeNumber = random(1, 10)
 const mirror = random() < 0.5
 const sceneDir = choose(['vertical', 'horizontal'])
 const sceneStyle = choose(['arcs', 'waves'])
+const withBorder = random()<0.5
 
 async function draw() {
     background(BG)
@@ -53,9 +54,11 @@ async function draw() {
     strokeWeight(30 * pixelSize)
     rect(0, 0, width, height)
     rect(0, 0, width, height, 60 * pixelSize)
-    borderPath = new Path.Rectangle(new paper.Rectangle(15 * pixelSize, 15 * pixelSize, width - 30 * pixelSize, height - 30 * pixelSize), 45 * pixelSize)
-    stroke(pencil)
-    drawPath(borderPath)
+    if (withBorder) {
+        borderPath = new Path.Rectangle(new paper.Rectangle(15 * pixelSize, 15 * pixelSize, width - 30 * pixelSize, height - 30 * pixelSize), 45 * pixelSize)
+        stroke(pencil)
+        drawPath(borderPath)
+    }
     addEffect()
     return
 }
