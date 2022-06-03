@@ -2,11 +2,8 @@ import './App.css';
 import Sections from './components/Sections';
 import Title from './components/TItle';
 import Wrapper from './components/Wrapper';
-import useScroll from './utils/useScroll';
 
 function App() {
-	const {scroll, setScroll} = useScroll();
-
 	const section1 = [
 		{ title: ['First, a path. a bezier curve.','paperjs is great with forming and editing vector paths.','','drawing style is made using lots of circles along the path, varing their size a bit with noise.'], 
 		  images:['0-0','0-1','0-2','0-3'] },
@@ -45,7 +42,6 @@ function App() {
 
 	return (
 		<div className="App">
-			<button onClick={() => setScroll(0)}>Home</button>
 			<Wrapper>
 				<Title x={0.4} y={0.4} start={-30} duration={60} text={["Making of Clint Fields."]} />
 				<Title x={0.4} y={0.5} start={-30} duration={60} text={["Orr Kislev & Clint Fulkerson"]} />
