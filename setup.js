@@ -32,6 +32,9 @@ function keyPressed(){
         }
     }
     if (keyCode == 83) {
+        if (!finalImage) return 
+        
+        
         const bounds = new paper.Rectangle(p(0,0),p(width,height))
         const svg = paper.project.exportSVG({asString:true, bounds:bounds})
         const url = "data:image/svg+xml;utf8," + encodeURIComponent(svg);

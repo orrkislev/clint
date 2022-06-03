@@ -5,18 +5,23 @@ let pencil = '#1B1B0F'
 const pallete1 = ['#de8ba0', '#a6465b', '#e5bcb6', '#de4704', '#f8a306']
 const pallete2 = ['#4861a4', '#017f82', '#1B1B0F', '#fefffe', '#37166d', '#7b0517', '#ed8845', '#de0148']
 const pallete3 = ["#F65817", "#1F8734", "#A82E79", "#3E7282", "#FA9B4E"]
-const colors = choose([pallete1, pallete2, pallete3])
+const pallete4 = ['#a7dfff', '#467194', '#b07967', '#78544c']
+const pallete5 = ['#fd0155', '#fa76c6']
+const gold = ['#a67c00', '#bf9b30', '#ffbf00', '#ffcf40', '#ffdc73']
+const bw = [pencil, BG]
+const colors = choose([pallete1, pallete2, pallete3, pallete4, pallete5, gold, bw])
 
 const tangentStrengh = 120
 const pushPointBack = tangentStrengh
-const lineSpacing = random(8,20)
+const lineSpacing = random(8, 20)
 
-const colorfull = random() < 0.5
+const colorfull = random() < 0.3
 const holeNumber = random(1, 10)
-const mirror = random() < 0.5
+const mirror = random() < 0.7
 const sceneDir = choose(['vertical', 'horizontal'])
 const sceneStyle = choose(['arcs', 'waves'])
-const withBorder = random()<0.5
+const withBorder = random() < 0.7
+const withDisturbance = random() < 0.3
 
 async function draw() {
     background(BG)
@@ -29,7 +34,7 @@ async function draw() {
     // return
 
     if (sceneDir == 'horizontal') {
-        growthCenter = new Point(random(width), random(-height, 0))
+        growthCenter = new Point(random(width), random(-height, height))
         if (sceneStyle == 'arcs') fieldPaths = getFieldPaths_arcs_horizontal()
         else if (sceneStyle == 'waves') fieldPaths = getFieldPaths_waves_horizontal()
     } else if (sceneDir == 'vertical') {
@@ -47,73 +52,37 @@ async function draw() {
     for (hole of holes) hole.finalShape()
     await applyField(fieldPaths)
 
-    for (hole of holes) await floodFill(hole.pos.x, hole.pos.y, pencil)
+    for (hole of holes) hole.redraw()
+
 
     // FINISH IMAGE
     stroke(BG)
     strokeWeight(30 * pixelSize)
     rect(0, 0, width, height)
     rect(0, 0, width, height, 60 * pixelSize)
+    borderPath = new Path.Rectangle(new paper.Rectangle(15 * pixelSize, 15 * pixelSize, width - 30 * pixelSize, height - 30 * pixelSize), 45 * pixelSize)
+    borderPath.strokeColor = pencil
     if (withBorder) {
-        borderPath = new Path.Rectangle(new paper.Rectangle(15 * pixelSize, 15 * pixelSize, width - 30 * pixelSize, height - 30 * pixelSize), 45 * pixelSize)
         stroke(pencil)
         drawPath(borderPath)
     }
+    if (withDisturbance) disturbance()
     addEffect()
-    return
+    
+    finishImage()
+    fxpreview()
 }
 
-async function floodFill(x, y, clr) {
-    x = round(x)
-    y = round(y)
-    colorMode(HSL)
-    const fillColor = color(clr)
-
-    loadPixels()
-    const startColor = getPixelRGB(x, y)
-    if (startColor == colorToRGB(fillColor)) return
-    const stack = [{ pos: new Point(x, y), depth: 0 }]
-    let count = 0
-    while (stack.length > 0) {
-        const newPos = stack.pop()
-        const posColor = getPixelRGB(newPos.pos.x, newPos.pos.y)
-        const sameAsStart = posColor == startColor
-        if (sameAsStart || newPos.depth < 3) {
-            let nextDepth = sameAsStart ? 0 : newPos.depth + 1
-            if (newPos.depth > 0) nextDepth++
-            setPixel(newPos.pos.x, newPos.pos.y, fillColor)
-            if (count++ % 500 == 0) {
-                updatePixels()
-                await timeout(0)
-            }
-            stack.push({ pos: newPos.pos.add(new Point(-1, 0)), depth: nextDepth})
-            stack.push({ pos: newPos.pos.add(new Point(0, -1)), depth: nextDepth})
-            stack.push({ pos: newPos.pos.add(new Point(1, 0)), depth: nextDepth})
-            stack.push({ pos: newPos.pos.add(new Point(0, 1)), depth: nextDepth})
-        }
+function disturbance() {
+    fill(pencil)
+    noStroke()
+    for (let i = 0; i < 1000; i++) {
+        push()
+        translate(random(width), random(height))
+        rotate(random(360))
+        ellipse(0, 0, random(10, 20) * pixelSize, random(3) * pixelSize)
+        pop()
     }
-    updatePixels()
-}
-
-function setPixel(x, y, clr) {
-    const index = (x + y * width) * 4
-    pixels[index] = red(clr)
-    pixels[index + 1] = green(clr)
-    pixels[index + 2] = blue(clr)
-}
-
-function comparePixelColors(x1, y1, x2, y2) {
-    const index1 = (x1 + y1 * width) * 4
-    const index2 = (x2 + y2 * width) * 4
-    return pixels[index1] == pixels[index2] && pixels[index1 + 1] == pixels[index2 + 1] && pixels[index1 + 2] == pixels[index2 + 2]
-}
-
-function getPixelRGB(x, y) {
-    const index = (x + y * width) * 4
-    return pixels[index] + ',' + pixels[index + 1] + ',' + pixels[index + 2]
-}
-function colorToRGB(clr) {
-    return red(clr) + ',' + green(clr) + ',' + blue(clr)
 }
 
 function getFieldPaths_waves_vertical() {
@@ -138,9 +107,10 @@ function getFieldPaths_arcs_vertical() {
 }
 
 function getFieldPaths_arcs_horizontal() {
+    const arcsCenter = random(height)
     const paths = []
     for (let y = CORNERS.BOTTOM_LEFT.y; y > CORNERS.TOP_RIGHT.y; y -= lineSpacing * pixelSize) {
-        const distFromCenter = y - growthCenter.y
+        const distFromCenter = y - arcsCenter
         newPath = new Path([p(CORNERS.TOP_LEFT.x, y), p(width / 2, y + distFromCenter), p(CORNERS.TOP_RIGHT.x, y)])
         newPath.smooth()
         paths.push(newPath)

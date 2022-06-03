@@ -1,7 +1,7 @@
 let finalImage
 function finishImage() {
     finalImage = get()
-    windowResized()
+    // windowResized()
 }
 
 // function windowResized() {

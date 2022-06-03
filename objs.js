@@ -15,7 +15,8 @@ class Hole {
     }
 
     createTail() {
-        this.tail = makeSpine(this.hole.position, this.hole.position.subtract(growthCenter).normalize(), height)
+        const dir = this.hole.position.subtract(growthCenter).normalize()
+        this.tail = makeSpine(this.hole.position, dir, height)
         this.tail.strokeColor = '#00000044'
     }
 
@@ -104,8 +105,69 @@ class Hole {
         return new Hole(pos, size)
     }
 
+    redraw(){
+        if (sceneDir == 'vertical' && this.pos.x > growthCenter.x) this.draw()
+        else if (sceneDir == 'horizontal' && this.pos.y < growthCenter.y) this.draw()
+    }
+
+    async floodFill(clr) {
+        const fillColor = color(clr)
+
+        const pathFillGraphics = createGraphics(width, height)
+        pathFillGraphics.fill(0)
+        pathFillGraphics.noStroke()
+        const ps = pathToPoints(this.path)
+        pathFillGraphics.beginShape()
+        ps.forEach(p => pathFillGraphics.vertex(p.x, p.y))
+        pathFillGraphics.endShape()
+        pathFillGraphics.loadPixels()
+        loadPixels()
+        
+        const x = round(this.pos.y)
+        const y = round(this.pos.y)
+        const startPixelIndex = getPixelIndex(x,y)
+        const startColor = getPixelRGB(startPixelIndex)
+        if (startColor == colorToRGB(fillColor)) return
+        const stack = [{ pos: new Point(x, y), depth: 0 }]
+        let count = 0
+        while (stack.length > 0) {
+            const newPos = stack.pop()
+            const pixelIndex = getPixelIndex(newPos.pos.x, newPos.pos.y)
+            const posColor = getPixelRGB(pixelIndex)
+            const sameAsStart = posColor == startColor
+            const isInPath = pathFillGraphics.pixels[pixelIndex] == 0 
+            if (!isInPath) continue
+            if (sameAsStart || newPos.depth < 3) {
+                let nextDepth = sameAsStart ? 0 : newPos.depth + 1
+                if (newPos.depth > 0) nextDepth++
+                setPixel(pixelIndex, fillColor)
+                if (count++ % 500 == 0) {
+                    updatePixels()
+                    await timeout(0)
+                }
+                stack.push({ pos: newPos.pos.add(new Point(-1, 0)), depth: nextDepth })
+                stack.push({ pos: newPos.pos.add(new Point(0, -1)), depth: nextDepth })
+                stack.push({ pos: newPos.pos.add(new Point(1, 0)), depth: nextDepth })
+                stack.push({ pos: newPos.pos.add(new Point(0, 1)), depth: nextDepth })
+            }
+        }
+        updatePixels()
+    }
+
     static RandomMirror(){
         const hole = Hole.Random([width*.2,width*.5])
         if (hole) hole.mirror()
     }
 }
+
+
+
+
+function setPixel(index, clr) {
+    pixels[index] = red(clr)
+    pixels[index + 1] = green(clr)
+    pixels[index + 2] = blue(clr)
+}
+const getPixelIndex = (x, y) => (x + y * width) * 4
+const getPixelRGB = index => pixels[index] + ',' + pixels[index + 1] + ',' + pixels[index + 2]
+const colorToRGB = (clr) => red(clr) + ',' + green(clr) + ',' + blue(clr)
