@@ -20,18 +20,19 @@ export default function Sections(props) {
             start += dur / 4
         }
 
-        const titleComponent = <Title x={0.05} y={0.2} start={startStart} duration={(dur/3) * (item.images.length+1)} key={item.title} text={item.title} />
+        const titleComponent = <Title withLine x={0.05} y={0.2} start={startStart} duration={(dur/3) * (item.images.length+1)} key={item.title} text={item.title} />
         titles.push(titleComponent)
     })
 
     return (
         <>
+        <Wrapper>
+                {sketches}
+            </Wrapper>
             <Wrapper>
                 {titles}
             </Wrapper>
-            <Wrapper>
-                {sketches}
-            </Wrapper>
+            
         </>
     )
 }

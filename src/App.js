@@ -37,7 +37,9 @@ function App() {
 		{ title: ['finally no more gaps. each line is continuous, following path of borders and holes with fillets.'],
 		  images:[41,42,43] ,singleImage:true},
 		{ title: ['testing different layouts, colors and such'],
-		  images:[44,45,46,47] ,singleImage:true},
+		  images:[44,45,46,] ,singleImage:true},
+		{ title: ['thank you ♥'],
+		  images:[47] ,singleImage:true},
 	]
 
 	return (
