@@ -19,6 +19,7 @@ const sceneDir = choose(['vertical', 'horizontal'])
 const sceneStyle = random() < 0.05 ? 'circles' : choose(['arcs', 'waves'])
 const withBorder = random() < 0.7
 const withDisturbance = random() < 0.28
+const withoutLines = colorfull ? random()<0.2 : false
 
 let fillExpandDir2, fillExpandDir, fillForwardDir
 async function draw() {
@@ -185,7 +186,7 @@ async function applyField(fieldPaths) {
             if (intersections.length > 1) path = makeField(path, hole, intersections)
         }
         fillField(path)
-        drawPath(path)
+        if (!withoutLines) drawPath(path)
         // path.remove()
         await timeout(0)
     }
