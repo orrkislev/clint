@@ -106,6 +106,7 @@ class Hole {
     }
 
     redraw(){
+        if (sceneStyle == 'circles') this.draw()
         if (sceneDir == 'vertical' && this.pos.x > growthCenter.x) this.draw()
         else if (sceneDir == 'horizontal' && this.pos.y < growthCenter.y) this.draw()
     }

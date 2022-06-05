@@ -7,8 +7,7 @@ nxs = 0.02
 function drawDotXY(x, y) {
     allDots++
     nx += nxs
-    strokeWeight((2+noise(nx)*2) * pixelSize)
-    // strokeWeight(1)
+    strokeWeight((2 + noise(nx) * 2) * pixelSize)
     line(x, y, x, y)
 }
 

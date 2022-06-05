@@ -15,6 +15,9 @@ function drawField(spine, leftSide, rightSide) {
     noFill()
     stroke(pencil)
 
+    leftSide.strokeColor = pencil
+    rightSide.strokeColor = pencil
+
     drawPath(rightSide)
     drawPath(leftSide)
 
@@ -28,22 +31,24 @@ function drawField(spine, leftSide, rightSide) {
         seg1 = new Segment(loc_l.point, null, loc_l.tangent.multiply(80))
         seg2 = new Segment(loc_r.point, loc_r.tangent.multiply(80))
         segMid = new Segment(loc_spine.point.add(loc_spine.tangent.multiply(40)), loc_spine.normal.multiply(50), loc_spine.normal.multiply(-50))
-        p = new Path([seg1, seg2])
-        p.smooth()
-        paths.push(p)
+        path = new Path([seg1, seg2])
+        path.smooth()
+        paths.push(path)
     }
-    paths.forEach(p => drawPath(p))
+    paths.forEach(path => drawPath(path))
+    paths.forEach(path => path.strokeColor = pencil)
+    paths[0].fullySelected = true
 }
 
 function makeSides(spine, thickness) {
     rightSide = new Path()
     leftSide = new Path()
     for (let i = 0; i < 1; i += 1 / 10) {
-        p = spine.getPointAt(i * spine.length)
+        path = spine.getPointAt(i * spine.length)
         perpendicular = spine.getNormalAt(i * spine.length)
         perpendicular.length = thickness.getLocationAt(i * thickness.length).point.y
-        rightSide.add(p.add(perpendicular))
-        leftSide.add(p.subtract(perpendicular))
+        rightSide.add(path.add(perpendicular))
+        leftSide.add(path.subtract(perpendicular))
     }
     rightSide.smooth()
     leftSide.smooth()
@@ -300,7 +305,7 @@ function makeBorders() {
 }
 
 
-function stuff(){
+async function stuff(){
     compCenter = new Point(width / 2, 0)
     holeFocal = null
     holeDirection = DIRS.DOWN

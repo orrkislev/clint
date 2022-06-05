@@ -34,6 +34,7 @@
   <script language="javascript" type="text/javascript" src="./utils.js"></script>
   <script language="javascript" type="text/javascript" src="./geometry.js"></script>
   <script language="javascript" type="text/javascript" src="./draw.js"></script>
+  <!-- <script language="javascript" type="text/javascript" src="./old.js"></script> -->
 
   <script language="javascript" type="text/javascript" src="./objs.js"></script>
 </head>
@@ -44,11 +45,22 @@
     display: grid;
     place-items: center;
   }
+  img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);      
+    border-radius: 9999px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    display: none;
+  }
 </style>
 
 <body style="margin:0">
   <main>
     <canvas id="paperCanvas"></canvas>
+    <img id="loading" src="./loading.gif" />
   </main>
   <script type="text/javascript" src="setup.js"></script>
   <script type="text/javascript" src="paperSketch.js"></script>

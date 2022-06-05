@@ -28,7 +28,12 @@ paper.Path.prototype.getSection = function (from, to) {
     // const keepPath = newPath.getLocationOf(to) ? newPath : newPath2
     const keepPath = pointOnWhichPath(to, newPath, newPath2)
     const keepPath2 = keepPath.splitAt(keepPath.getNearestLocation(to).offset)
-    return pointOnWhichPath(from, keepPath, keepPath2)
+    const result = pointOnWhichPath(from, keepPath, keepPath2).clone()
+    if (newPath) newPath.remove()
+    if (newPath2) newPath2.remove()
+    if (keepPath) keepPath.remove()
+    if (keepPath2) keepPath2.remove()
+    return result
 }
 
 function pointOnWhichPath(point,path1,path2){
@@ -81,6 +86,7 @@ function pathToPoints(path) {
 }
 
 function drawPath(path) {
+    path.strokeColor = 'black'
     const ps = pathToPoints(path)
     drawShape(ps)
 }
@@ -130,23 +136,18 @@ function getFillet(path1, path2, radius) {
 
 function fillField(fieldPath) {
     const pathToFill = fieldPath.clone()
-    const sideDir = sceneDir=='horizontal' ? DIRS.RIGHT : DIRS.DOWN
-    sideDir.length = width
-    const frontDir = sceneDir=='horizontal' ? DIRS.UP : DIRS.RIGHT
-    frontDir.length = width
     const firstPoint = pathToFill.firstSegment.point
     const lastPoint = pathToFill.lastSegment.point
 
-    const base1_1 = new Segment(firstPoint.add(sideDir.multiply(-1)))
-    const base1_2 = new Segment(base1_1.point.add(frontDir))
-    const base2_1 = new Segment(lastPoint.add(sideDir))
-    const base2_2 = new Segment(base2_1.point.add(frontDir))
+    const base1_1 = new Segment(firstPoint.add(fillExpandDir2 ? fillExpandDir : fillExpandDir.multiply(-1)))
+    const base1_2 = new Segment(base1_1.point.add(fillForwardDir))
+    const base2_1 = new Segment(lastPoint.add(fillExpandDir2 || fillExpandDir))
+    const base2_2 = new Segment(base2_1.point.add(fillForwardDir))
     pathToFill.segments.unshift(base1_1)
     pathToFill.segments.unshift(base1_2)
     pathToFill.segments.push(base2_1)
     pathToFill.segments.push(base2_2)
     colorMode(HSB)
-    // if (colorfull)  fill(random(255),50,150)
     if (colorfull) {
         const chosenColor = colors.shift()
         colors.sort((a,b)=>random(-1,1))
@@ -183,5 +184,6 @@ function joinAndFillet(paths, r1, r2) {
 
     const result = new Path()
     sections.forEach(section => result.join(section))
+    sections.forEach(section => section.remove())
     return result
 }

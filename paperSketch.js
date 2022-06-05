@@ -11,37 +11,36 @@ const gold = ['#a67c00', '#bf9b30', '#ffbf00', '#ffcf40', '#ffdc73']
 const bw = [pencil, BG]
 const colors = choose([pallete1, pallete2, pallete3, pallete4, pallete5, gold, bw])
 
-const tangentStrengh = 120
-const pushPointBack = tangentStrengh
 const lineSpacing = random(8, 20)
-
 const colorfull = random() < 0.3
 const holeNumber = random(1, 10)
 const mirror = random() < 0.7
 const sceneDir = choose(['vertical', 'horizontal'])
-const sceneStyle = choose(['arcs', 'waves'])
+const sceneStyle = random() < 0.05 ? 'circles' : choose(['arcs', 'waves'])
 const withBorder = random() < 0.7
-const withDisturbance = random() < 0.3
+const withDisturbance = random() < 0.28
 
+let fillExpandDir2, fillExpandDir, fillForwardDir
 async function draw() {
     background(BG)
-
-    // noFill()
-    // stroke(pencil)
-    // strokeWeight(5)
-    // circle(width/2,height/2,200)
-    // await floodFill(width/2,height/2,pencil)
-    // return
-
-    if (sceneDir == 'horizontal') {
+    if (sceneStyle == 'circles'){
+        growthCenter = choose([p(0, 0), p(width, height)])
+        // growthCenter = p(100,100)
+        fieldPaths = getFieldPaths_circles()
+    } else if (sceneDir == 'horizontal') {
         growthCenter = new Point(random(width), random(-height, height))
+        fillExpandDir = DIRS.RIGHT.multiply(width)
+        fillForwardDir = DIRS.UP.multiply(width)
         if (sceneStyle == 'arcs') fieldPaths = getFieldPaths_arcs_horizontal()
         else if (sceneStyle == 'waves') fieldPaths = getFieldPaths_waves_horizontal()
     } else if (sceneDir == 'vertical') {
         growthCenter = new Point(random(width), height / 2)
         if (sceneStyle == 'arcs') fieldPaths = getFieldPaths_arcs_vertical()
         else if (sceneStyle == 'waves') fieldPaths = getFieldPaths_waves_vertical()
+        fillExpandDir = DIRS.DOWN.multiply(width)
+        fillForwardDir = DIRS.RIGHT.multiply(width)
     }
+
 
     for (let i = 0; i < holeNumber; i++) {
         if (mirror) Hole.RandomMirror()
@@ -51,9 +50,7 @@ async function draw() {
     for (hole of holes) hole.trimTail()
     for (hole of holes) hole.finalShape()
     await applyField(fieldPaths)
-
     for (hole of holes) hole.redraw()
-
 
     // FINISH IMAGE
     stroke(BG)
@@ -68,7 +65,7 @@ async function draw() {
     }
     if (withDisturbance) disturbance()
     addEffect()
-    
+
     finishImage()
     fxpreview()
 }
@@ -138,13 +135,24 @@ function getFieldPaths_waves_horizontal() {
     return paths
 }
 
-function getFieldPaths_circles(centerPoint) {
-    const maxDistance = Math.max(...Object.values(CORNERS).map(p => centerPoint.getDistance(p)))
+function getFieldPaths_circles() {
+    const maxDistance = Math.max(...Object.values(CORNERS).map(p => growthCenter.getDistance(p)))
     const paths = []
+    const center = p(width/2, height/2)
+    const dirToCenter = center.subtract(growthCenter)
+    const dirToLeft = p(1,0).rotate(round(dirToCenter.angle/90+1)*90)
+    const dirToRight = p(1,0).rotate(round(dirToCenter.angle/90)*90)
     for (let r = 30 * pixelSize; r < maxDistance; r += lineSpacing * random(0.8, 1.2) * pixelSize) {
-        newPath = new Path.Circle(centerPoint, r)
+        dirToCenter.length = r
+        const leftPoint = growthCenter.add(dirToLeft.normalize(r))
+        const rightPoint = growthCenter.add(dirToRight.normalize(r))
+        const centerPoint = growthCenter.add(dirToCenter.normalize(r))
+        newPath = new Path.Arc({ from: leftPoint, through: centerPoint, to: rightPoint })
         paths.push(newPath)
     }
+    fillExpandDir = dirToLeft.normalize(width)
+    fillExpandDir2 = dirToRight.normalize(width)
+    fillForwardDir = dirToCenter.normalize(width)
     return paths
 }
 
@@ -165,25 +173,26 @@ function getFieldPaths_circles(centerPoint) {
 
 async function applyField(fieldPaths) {
     for (path of fieldPaths) {
-        newPath = path.clone()
+        // let newPath = path.clone()
         const holesToTryAgain = []
         for (hole of holes) {
-            const intersections = getOrderedIntersections(newPath, [hole.path])
+            const intersections = getOrderedIntersections(path, [hole.path])
             if (intersections.length == 1) holesToTryAgain.push(hole)
-            if (intersections.length > 1) newPath = makeField(newPath, hole, intersections)
+            if (intersections.length > 1) path = makeField(path, hole, intersections)
         }
         for (hole of holesToTryAgain) {
-            const intersections = getOrderedIntersections(newPath, [hole.path])
-            if (intersections.length > 1) newPath = makeField(newPath, hole, intersections)
+            const intersections = getOrderedIntersections(path, [hole.path])
+            if (intersections.length > 1) path = makeField(path, hole, intersections)
         }
-        newPath.strokeColor = pencil
-
-        fillField(newPath)
-        drawPath(newPath)
+        fillField(path)
+        drawPath(path)
+        // path.remove()
         await timeout(0)
     }
 }
 
+
+const fieldFillet = 100
 function makeField(newPath, hole, intersections) {
     const firstIntersection = intersections[0]
     const lastIntersection = intersections[intersections.length - 1]
@@ -192,7 +201,12 @@ function makeField(newPath, hole, intersections) {
     part2 = hole.path.getSection(firstIntersection.point, lastIntersection.point)
     if (part2.firstSegment.point.getDistance(part1.lastSegment.point) > 2) part2.reverse()
     hole.drawingPartOf()
-    return joinAndFillet([part1, part2, part3], 100 * pixelSize, 50 * pixelSize) || newPath
+    result = joinAndFillet([part1, part2, part3], fieldFillet * pixelSize, fieldFillet*.5 * pixelSize) || newPath
+    part1.remove()
+    part2.remove()
+    part3.remove()
+    newPath.remove()
+    return result
 }
 
 

@@ -21,7 +21,7 @@ function setup(){
 
 }
 
-function keyPressed(){
+async function keyPressed(){
     if (keyCode == 89) {
         if (canvas.elt.style.display == 'none') {
             canvas.elt.style.display = 'block';
@@ -33,14 +33,17 @@ function keyPressed(){
     }
     if (keyCode == 83) {
         if (!finalImage) return 
-        
+        document.getElementById("loading").style.display = "block";
         
         const bounds = new paper.Rectangle(p(0,0),p(width,height))
         const svg = paper.project.exportSVG({asString:true, bounds:bounds})
+        await timeout(1500)
         const url = "data:image/svg+xml;utf8," + encodeURIComponent(svg);
         const link = document.createElement("a");
         link.download = 'this.svg';
         link.href = url;
         link.click();
+
+        document.getElementById("loading").style.display = 'none';
     }
 }
