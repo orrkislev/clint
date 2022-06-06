@@ -87,7 +87,8 @@ class Hole {
         xrange = xrange || [width*.2,width*.8]
         yrange = yrange || [height*.2,height*.8]
         let pos = new Point(randomRange(xrange), randomRange(yrange))
-        let size = baseSize * random(0.5,1.2) * pixelSize || width*random(0.01,0.08)
+        // let size = baseSize * random(0.5,1.2) * pixelSize || width*random(0.01,0.08)
+        let size = lineSpacing * random(1,6) * pixelSize
         let goodPos = false
         let tries = 0
         while (!goodPos) {
@@ -96,7 +97,7 @@ class Hole {
                 if (pos.getDistance(hole.pos) < size + hole.size + 60 * pixelSize) {
                     goodPos = false
                     pos = new Point(randomRange(xrange), randomRange(yrange))
-                    size = baseSize * random(0.5,1.2) * pixelSize || width*random(0.01,0.08)
+                    size = lineSpacing * random(1,6) * pixelSize
                     break
                 }
             }

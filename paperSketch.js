@@ -9,22 +9,27 @@ const pallete4 = ['#a7dfff', '#467194', '#b07967', '#78544c']
 const pallete5 = ['#fd0155', '#fa76c6']
 const gold = ['#a67c00', '#bf9b30', '#ffbf00', '#ffcf40', '#ffdc73']
 const bw = [pencil, BG]
-const colors = choose([pallete1, pallete2, pallete3, pallete4, pallete5, gold, bw])
+const randomColors = [random(50,150), random(100,255)]
+const colors = choose([pallete1, pallete2, pallete3, pallete4, pallete5, gold, bw, randomColors])
 
 const lineSpacing = random(8, 20)
-const colorfull = random() < 0.3
-const holeNumber = random(1, 10)
+const colorfull = random() < 0.4
+const holeNumber = random(1, 15)
 const mirror = random() < 0.7
 const sceneDir = choose(['vertical', 'horizontal'])
 const sceneStyle = random() < 0.05 ? 'circles' : choose(['arcs', 'waves'])
 const withBorder = random() < 0.7
 const withDisturbance = random() < 0.28
-const withoutLines = colorfull ? random()<0.2 : false
+const withoutLines = colorfull ? random() < 0.2 : false
 
 let fillExpandDir2, fillExpandDir, fillForwardDir
 async function draw() {
+    colorMode(HSB, 255)
+    fieldFillet = map(lineSpacing + holeNumber, 9, 30, 100, 50)
+
+
     background(BG)
-    if (sceneStyle == 'circles'){
+    if (sceneStyle == 'circles') {
         growthCenter = choose([p(0, 0), p(width, height)])
         // growthCenter = p(100,100)
         fieldPaths = getFieldPaths_circles()
@@ -127,7 +132,7 @@ function getFieldPaths_arcs() {
 }
 
 function getFieldPaths_waves_horizontal() {
-    const basePath = makeSpine2(CORNERS.BOTTOM_LEFT, CORNERS.BOTTOM_RIGHT, 10)
+    const basePath = makeSpine2(CORNERS.BOTTOM_LEFT, CORNERS.BOTTOM_RIGHT, random(10,20))
     const paths = []
     for (let y = CORNERS.BOTTOM_LEFT.y; y > CORNERS.TOP_LEFT.y; y -= lineSpacing * pixelSize) {
         basePath.segments.forEach(p => p.point.y -= lineSpacing * random(0.8, 1.2) * pixelSize)
@@ -139,10 +144,10 @@ function getFieldPaths_waves_horizontal() {
 function getFieldPaths_circles() {
     const maxDistance = Math.max(...Object.values(CORNERS).map(p => growthCenter.getDistance(p)))
     const paths = []
-    const center = p(width/2, height/2)
+    const center = p(width / 2, height / 2)
     const dirToCenter = center.subtract(growthCenter)
-    const dirToLeft = p(1,0).rotate(round(dirToCenter.angle/90+1)*90)
-    const dirToRight = p(1,0).rotate(round(dirToCenter.angle/90)*90)
+    const dirToLeft = p(1, 0).rotate(round(dirToCenter.angle / 90 + 1) * 90)
+    const dirToRight = p(1, 0).rotate(round(dirToCenter.angle / 90) * 90)
     for (let r = 30 * pixelSize; r < maxDistance; r += lineSpacing * random(0.8, 1.2) * pixelSize) {
         dirToCenter.length = r
         const leftPoint = growthCenter.add(dirToLeft.normalize(r))
@@ -173,8 +178,8 @@ function getFieldPaths_circles() {
 
 
 async function applyField(fieldPaths) {
+    // let lastPath = null
     for (path of fieldPaths) {
-        // let newPath = path.clone()
         const holesToTryAgain = []
         for (hole of holes) {
             const intersections = getOrderedIntersections(path, [hole.path])
@@ -186,14 +191,36 @@ async function applyField(fieldPaths) {
             if (intersections.length > 1) path = makeField(path, hole, intersections)
         }
         fillField(path)
+        // if (!lastPath) lastPath = path
+        // else {
+        //     lastPath.reverse()
+        //     lastPath.join(path)
+        //     getNextFillColor()
+        //     fillPath(lastPath)
+        //     noFill()
+        //     // lastPath.remove()
+        //     lastPath = path
+        // }
         if (!withoutLines) drawPath(path)
         // path.remove()
         await timeout(0)
     }
 }
 
+function getNextFillColor() {
+    if (!colorfull) fill(BG)
+    else if (colors == randomColors) fill(random(255), colors[0] + random(-20, 20), colors[1] + random(-20, 20))
+    else {
+        const chosenColor = colors.shift()
+        colors.sort((a, b) => random(-1, 1))
+        colors.push(chosenColor)
+        const clr1 = color(chosenColor)
+        const clr2 = color(hue(clr1) + random(-10, 10), saturation(clr1) + random(-10, 10), brightness(clr1))
+        fill(clr2)
+    }
+}
 
-const fieldFillet = 100
+
 function makeField(newPath, hole, intersections) {
     const firstIntersection = intersections[0]
     const lastIntersection = intersections[intersections.length - 1]
@@ -202,7 +229,7 @@ function makeField(newPath, hole, intersections) {
     part2 = hole.path.getSection(firstIntersection.point, lastIntersection.point)
     if (part2.firstSegment.point.getDistance(part1.lastSegment.point) > 2) part2.reverse()
     hole.drawingPartOf()
-    result = joinAndFillet([part1, part2, part3], fieldFillet * pixelSize, fieldFillet*.5 * pixelSize) || newPath
+    result = joinAndFillet([part1, part2, part3], fieldFillet * pixelSize, fieldFillet * .5 * pixelSize) || newPath
     part1.remove()
     part2.remove()
     part3.remove()
