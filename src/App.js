@@ -47,6 +47,12 @@ function App() {
 
 	return (
 		<div className="App">
+			<div style={{position:'absolute', right:'1em', bottom:'1em', display:'flex', flexDirection:'column', gap:'0.5em'}}>
+				<a href="http://fields.tez.page" target="_blank">fields on objkt</a>
+				<a href="https://www.fxhash.xyz/u/Orr%20Kislev" target="_blank">orr on fxhash</a>
+				<a href="https://twitter.com/clintfulkerson" target="_blank">@clintfulkerson</a>
+				<a href="https://twitter.com/orrkislev" target="_blank">@orrkislev</a>
+			</div>
 			<Wrapper>
 				<Sketch filename={'hero'} x={.1} y={.1} duration={65} start={-10} className="image-large"/>
 				<Title x={0.05} y={0.2} start={-30} duration={60} text={["Making of F(x)ields."]} className="nice-font"/>
