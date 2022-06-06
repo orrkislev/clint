@@ -107,9 +107,11 @@ class Hole {
     }
 
     redraw(){
-        if (sceneStyle == 'circles') this.draw()
-        if (sceneDir == 'vertical' && this.pos.x > growthCenter.x) this.draw()
-        else if (sceneDir == 'horizontal' && this.pos.y < growthCenter.y) this.draw()
+        if (color(get(this.pos.x,this.pos.y)) != color(pencil)) this.draw()
+
+        // if (sceneStyle == 'circles') this.draw()
+        // if (sceneDir == 'vertical' && this.pos.x > growthCenter.x) this.draw()
+        // else if (sceneDir == 'horizontal' && this.pos.y < growthCenter.y) this.draw()
     }
 
     async floodFill(clr) {

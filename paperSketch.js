@@ -178,7 +178,7 @@ function getFieldPaths_circles() {
 
 
 async function applyField(fieldPaths) {
-    // let lastPath = null
+    let lastPath = null
     for (path of fieldPaths) {
         const holesToTryAgain = []
         for (hole of holes) {
@@ -190,17 +190,17 @@ async function applyField(fieldPaths) {
             const intersections = getOrderedIntersections(path, [hole.path])
             if (intersections.length > 1) path = makeField(path, hole, intersections)
         }
-        fillField(path)
-        // if (!lastPath) lastPath = path
-        // else {
-        //     lastPath.reverse()
-        //     lastPath.join(path)
-        //     getNextFillColor()
-        //     fillPath(lastPath)
-        //     noFill()
-        //     // lastPath.remove()
-        //     lastPath = path
-        // }
+        // fillField(path)
+        if (!lastPath) lastPath = path
+        else {
+            lastPath.reverse()
+            lastPath.join(path)
+            getNextFillColor()
+            fillPath(lastPath)
+            noFill()
+            // lastPath.remove()
+            lastPath = path
+        }
         if (!withoutLines) drawPath(path)
         // path.remove()
         await timeout(0)
