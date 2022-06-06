@@ -59,7 +59,7 @@ class Hole {
     }
 
     draw() {
-        fill(pencil)
+        fill(color(pencil))
         noStroke()
         fillPath(this.path)
         noFill()
@@ -107,7 +107,7 @@ class Hole {
     }
 
     redraw(){
-        if (color(get(this.pos.x,this.pos.y)) != color(pencil)) this.draw()
+        if (brightness(color(get(this.pos.x,this.pos.y))) > 15) this.draw()
 
         // if (sceneStyle == 'circles') this.draw()
         // if (sceneDir == 'vertical' && this.pos.x > growthCenter.x) this.draw()
