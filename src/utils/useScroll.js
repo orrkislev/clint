@@ -5,13 +5,13 @@ export default function useScroll() {
     const [touches, setTouches] = useState({});
 
     useEffect(() => {
-        const handleScroll = (event) => setScroll(Math.max(0, scroll + Math.floor(event.deltaY / 50)))
+        const handleScroll = (event) => setScroll(Math.max(0, scroll + event.deltaY / 50))
         const handleTouch = (event) => {
             let deltaY = 0
             Object.values(event.touches).forEach(touch => {
                 if (touch.identifier in touches) deltaY -= touch.clientY - touches[touch.identifier].clientY
             })
-            setScroll(Math.max(0, scroll + Math.floor(deltaY/10)))
+            setScroll(Math.max(0, scroll + deltaY/15))
             setTouches(event.touches)
         }
         const handleTouchStart = (e) => setTouches(e.touches)

@@ -19,14 +19,13 @@ export default function Animated(props) {
     else if (animate2 > 0.5 && yInitial !== 0) setyInitial(0)
 
     const style = {
-        position: 'absolute',
         top: props.y * window.innerHeight,
         left: props.x * window.innerWidth,
     }
 
     return (
-        <motion.div initial={{ y: yInitial }} animate={{ y, opacity:[0,1] }}>
-            <div style={style}>
+        <motion.div className='animated-outer' initial={{ y: yInitial }} animate={{ y, opacity:[0,1] }}>
+            <div style={style} className='animated-inner'>
                 {props.children}
             </div>
         </motion.div>
