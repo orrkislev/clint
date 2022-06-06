@@ -9,7 +9,7 @@ const pallete4 = ['#a7dfff', '#467194', '#b07967', '#78544c']
 const pallete5 = ['#fd0155', '#fa76c6']
 const gold = ['#a67c00', '#bf9b30', '#ffbf00', '#ffcf40', '#ffdc73']
 const bw = [pencil, BG]
-const randomColors = [random(50,150), random(100,255)]
+const randomColors = [random(50, 150), random(100, 255)]
 const colors = choose([pallete1, pallete2, pallete3, pallete4, pallete5, gold, bw, randomColors])
 
 const lineSpacing = random(8, 20)
@@ -132,7 +132,7 @@ function getFieldPaths_arcs() {
 }
 
 function getFieldPaths_waves_horizontal() {
-    const basePath = makeSpine2(CORNERS.BOTTOM_LEFT, CORNERS.BOTTOM_RIGHT, random(10,20))
+    const basePath = makeSpine2(CORNERS.BOTTOM_LEFT, CORNERS.BOTTOM_RIGHT, random(10, 20))
     const paths = []
     for (let y = CORNERS.BOTTOM_LEFT.y; y > CORNERS.TOP_LEFT.y; y -= lineSpacing * pixelSize) {
         basePath.segments.forEach(p => p.point.y -= lineSpacing * random(0.8, 1.2) * pixelSize)
@@ -193,15 +193,18 @@ async function applyField(fieldPaths) {
         // fillField(path)
         if (!lastPath) lastPath = path
         else {
+            let newPath = path.clone()
+            newPath.strokeColor = pencil
             lastPath.reverse()
-            lastPath.join(path)
+            lastPath.addSegments(path.segments)
             getNextFillColor()
             fillPath(lastPath)
             noFill()
-            // lastPath.remove()
+            lastPath.remove()
             lastPath = path
         }
         if (!withoutLines) drawPath(path)
+        // path.parent = paper.project.activeLayer
         // path.remove()
         await timeout(0)
     }
