@@ -107,11 +107,8 @@ class Hole {
     }
 
     redraw(){
-        if (brightness(color(get(this.pos.x,this.pos.y))) > 15) this.draw()
-
-        // if (sceneStyle == 'circles') this.draw()
-        // if (sceneDir == 'vertical' && this.pos.x > growthCenter.x) this.draw()
-        // else if (sceneDir == 'horizontal' && this.pos.y < growthCenter.y) this.draw()
+        const c = get(this.pos.x,this.pos.y)
+        if (c[0]!=27 || c[1]!=27 || c[2] != 15) this.draw()
     }
 
     async floodFill(clr) {

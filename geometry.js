@@ -88,6 +88,7 @@ function pathToPoints(path) {
 function drawPath(path) {
     path.strokeColor = 'black'
     const ps = pathToPoints(path)
+    stroke(pencil)
     drawShape(ps)
 }
 function fillPath(path) {
