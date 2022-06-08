@@ -19,7 +19,7 @@
             body: JSON.stringify({ query, variables: { slug }, })
             }).then(r => r.json()).then(data => {
                 const hash = data.data.objkt.generationHash
-                if (hash) window.location.href = `/phoneBackground.html?hash=${hash}`;
+                if (hash) window.location.href = `./phoneBackground.html?hash=${hash}`;
             });
         }
   </script>
