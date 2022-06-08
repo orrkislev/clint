@@ -210,12 +210,13 @@ async function applyField(fieldPaths) {
             lastPath.reverse()
             lastPath.addSegments(path.segments)
             getNextFillColor()
+            noStroke()
             fillPath(lastPath)
             noFill()
+            if (!withoutLines) drawPath(lastPath)
             lastPath.remove()
             lastPath = path
         }
-        if (!withoutLines) drawPath(path)
         // path.parent = paper.project.activeLayer
         // path.remove()
         await timeout(0)
