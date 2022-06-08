@@ -23,7 +23,7 @@ const withDisturbance = random() < 0.28
 const withoutLines = colorfull ? random() < 0.2 : false
 
 let fillExpandDir2, fillExpandDir, fillForwardDir
-async function draw() {
+async function makeImage() {
     colorMode(HSB, 255)
     fieldFillet = map(lineSpacing + holeNumber, 9, 30, 100, 50)
 
@@ -59,18 +59,30 @@ async function draw() {
     for (hole of holes) hole.redraw()
 
     // FINISH IMAGE
-    stroke(BG)
-    strokeWeight(30 * pixelSize)
-    rect(0, 0, width, height)
-    rect(0, 0, width, height, 60 * pixelSize)
-    borderPath = new Path.Rectangle(new paper.Rectangle(15 * pixelSize, 15 * pixelSize, width - 30 * pixelSize, height - 30 * pixelSize), 45 * pixelSize)
-    borderPath.strokeColor = pencil
-    if (withBorder) {
-        stroke(pencil)
-        drawPath(borderPath)
+    if (!phoneBackground){
+        stroke(BG)
+        strokeWeight(30 * pixelSize)
+        rect(0, 0, width, height)
+        rect(0, 0, width, height, 60 * pixelSize)
+        borderPath = new Path.Rectangle(new paper.Rectangle(15 * pixelSize, 15 * pixelSize, width - 30 * pixelSize, height - 30 * pixelSize), 45 * pixelSize)
+        borderPath.strokeColor = pencil
+        if (withBorder) {
+            stroke(pencil)
+            drawPath(borderPath)
+        }
     }
     if (withDisturbance) disturbance()
+
+    if (phoneBackground){
+        img = get()
+        const ratio = 9/16
+        resizeCanvas(windowWidth, windowWidth / ratio)
+        rotate(PI/2)
+        image(img, 0, 0, height,-width)
+        save()
+    }
     addEffect()
+
 
     finishImage()
     fxpreview()

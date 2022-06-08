@@ -1,0 +1,38 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script>
+      function doStuff(){
+        const input = document.getElementById("input");
+        const inputText = input.value;
+        if(!isNaN(inputText) && inputText> 0 && inputText < 100) doStuff2(inputText);  
+      }
+      function doStuff2(num){
+        var slug = `arbitrary-vessels-${num}`;
+        var query = `query getFieldHashBySlug($slug: String) {
+                        objkt(slug: $slug) {
+                            generationHash
+                        }
+                    }`;
+        fetch('https://api.fxhash.xyz/graphql', { method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', },
+            body: JSON.stringify({ query, variables: { slug }, })
+            }).then(r => r.json()).then(data => {
+                const hash = data.data.objkt.generationHash
+                if (hash) window.location.href = `/phoneBackground.html?hash=${hash}`;
+            });
+        }
+  </script>
+</head>
+
+<style>
+  
+</style>
+
+<body style="margin:0">
+    <div>hi</div>
+    <input type="text" id="input" />
+    <button onclick="doStuff()">Click me</button>
+</body>
+</html>
+

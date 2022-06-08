@@ -2,7 +2,7 @@ function setup(){
     const ratio = 9/16
     if (windowWidth * ratio > windowHeight) canvas = createCanvas(windowHeight / ratio, windowHeight);
     else canvas = createCanvas(windowWidth, windowWidth * ratio)
-    pixelSize = canvas.width / 1500
+    pixelSize = width / 1500
     paperCanvas = document.getElementById('paperCanvas');
     paperCanvas.width = width;
     paperCanvas.height = height
@@ -19,6 +19,7 @@ function setup(){
         BOTTOM_RIGHT: p(width*1.2, height*1.2)
     }
 
+    makeImage()
 }
 
 async function keyPressed(){
