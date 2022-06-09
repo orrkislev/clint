@@ -9,17 +9,17 @@ const pallete4 = ['#a7dfff', '#467194', '#b07967', '#78544c']
 const pallete5 = ['#fd0155', '#fa76c6']
 const gold = ['#a67c00', '#bf9b30', '#ffbf00', '#ffcf40', '#ffdc73']
 const bw = [pencil, BG]
-const randomColors = [random(50, 150), random(100, 255)]
+const randomColors = [random(50, 150), random(130, 220)]
 const colors = choose([pallete1, pallete2, pallete3, pallete4, pallete5, gold, bw, randomColors])
 
-const lineSpacing = random(8, 20)
+const lineSpacing = 13 //random(8, 20)
 const colorfull = random() < 0.4
 const holeNumber = random(1, 15)
 const mirror = random() < 0.7
 const sceneDir = choose(['vertical', 'horizontal'])
 const sceneStyle = random() < 0.05 ? 'circles' : choose(['arcs', 'waves'])
 const withBorder = random() < 0.7
-const withDisturbance = random() < 0.28
+const withDisturbance = true // random() < 0.28
 const withoutLines = colorfull ? random() < 0.2 : false
 
 let fillExpandDir2, fillExpandDir, fillForwardDir
@@ -59,30 +59,18 @@ async function makeImage() {
     for (hole of holes) hole.redraw()
 
     // FINISH IMAGE
-    if (!phoneBackground){
-        stroke(BG)
-        strokeWeight(30 * pixelSize)
-        rect(0, 0, width, height)
-        rect(0, 0, width, height, 60 * pixelSize)
-        borderPath = new Path.Rectangle(new paper.Rectangle(15 * pixelSize, 15 * pixelSize, width - 30 * pixelSize, height - 30 * pixelSize), 45 * pixelSize)
-        borderPath.strokeColor = pencil
-        if (withBorder) {
-            stroke(pencil)
-            drawPath(borderPath)
-        }
+    stroke(BG)
+    strokeWeight(30 * pixelSize)
+    rect(0, 0, width, height)
+    rect(0, 0, width, height, 60 * pixelSize)
+    borderPath = new Path.Rectangle(new paper.Rectangle(15 * pixelSize, 15 * pixelSize, width - 30 * pixelSize, height - 30 * pixelSize), 45 * pixelSize)
+    borderPath.strokeColor = pencil
+    if (withBorder) {
+        stroke(pencil)
+        drawPath(borderPath)
     }
+    // if (pixelSize > 0.5 && lineSpacing>12) addEffect()
     if (withDisturbance) disturbance()
-
-    if (phoneBackground){
-        img = get()
-        const ratio = 9/16
-        resizeCanvas(windowWidth, windowWidth / ratio)
-        rotate(PI/2)
-        image(img, 0, 0, height,-width)
-        save()
-    }
-    addEffect()
-
 
     finishImage()
     fxpreview()
